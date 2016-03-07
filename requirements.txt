@@ -1,0 +1,4 @@
+Flask
+idigbio
+Flask-RESTful
+Flask-SQLAlchemy
