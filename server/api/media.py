@@ -20,7 +20,7 @@ class MediaAPI(Resource):
                     "file_reference": media.file_reference,
                     "image_hash": media.image_hash,
                     "uploaded": media.uploaded,
-                    "uploaded_date": media.uploaded_date
+                    "uploaded_date": media.uploaded_date.isoformat()
                 } for media in Media.query
             ]
         }
@@ -57,7 +57,7 @@ class MediaAPI(Resource):
             "file_reference": media.file_reference,
             "image_hash": media.image_hash,
             "uploaded": media.uploaded,
-            "uploaded_date": media.uploaded_date
+            "uploaded_date": media.uploaded_date.isoformat()
         }
 
 @media_api.resource("/media/<int:media_id>")
@@ -77,5 +77,5 @@ class MediaItemAPI(Resource):
             "file_reference": media.file_reference,
             "image_hash": media.image_hash,
             "uploaded": media.uploaded,
-            "uploaded_date": media.uploaded_date
+            "uploaded_date": media.uploaded_date.isoformat()
         }

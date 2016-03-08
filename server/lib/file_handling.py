@@ -1,5 +1,6 @@
 import os
 import hashlib
+import datetime
 
 from app import db
 
@@ -12,21 +13,23 @@ file_types = {
 
 
 def calcFileHash(f, op=True, return_size=False, read_size=2048):
-    md5 = hashlib.md5()
-    size = 0
-
     def do_hash(fd):
+        md5 = hashlib.md5()
+        size = 0
+
         buf = fd.read(read_size)
         while len(buf) > 0:
             size += len(buf)
             md5.update(buf)
             buf = fd.read(read_size)
 
+        return md5, size
+
     if op:
         with open(f, "rb") as fd:
-            do_hash(fd)
+            md5, size = do_hash(fd)
     else:
-        do_hash(f)
+        md5, size = do_hash(f)
 
     if return_size:
         return (md5.hexdigest(), size)
@@ -34,7 +37,7 @@ def calcFileHash(f, op=True, return_size=False, read_size=2048):
         return md5.hexdigest()
 
 
-def process_media(m):
+def process_media(m, update_db=True):
     if os.path.exists(m.path):
         h, size = calcFileHash(m.path, return_size=True)
         m.image_hash = h
@@ -51,5 +54,11 @@ def process_media(m):
 
     # Upload Media File
 
-    db.session.add(m)
-    db.session.commit()
+    m.uploaded = True
+    m.uploaded_date = datetime.datetime.now()
+
+    if update_db:
+        db.session.add(m)
+        db.session.commit()
+
+    return m
