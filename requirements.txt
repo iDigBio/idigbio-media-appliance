@@ -1,4 +1,9 @@
 Flask
-idigbio
 Flask-RESTful
 Flask-SQLAlchemy
+SQLAlchemy-migrate
+gevent
+idigbio
+pytest
+pytest-flask
+pytest-sugar

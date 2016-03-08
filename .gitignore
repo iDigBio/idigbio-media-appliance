@@ -63,3 +63,4 @@ target/
 
 # Bower components
 server/static/components
+server/local.db
