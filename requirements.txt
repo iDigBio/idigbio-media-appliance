@@ -7,3 +7,4 @@ idigbio
 pytest
 pytest-flask
 pytest-sugar
+easygui

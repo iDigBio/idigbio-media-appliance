@@ -1,4 +1,5 @@
 import os
+import sys
 import hashlib
 import datetime
 
@@ -38,27 +39,36 @@ def calcFileHash(f, op=True, return_size=False, read_size=2048):
 
 
 def process_media(m, update_db=True):
-    if os.path.exists(m.path):
-        h, size = calcFileHash(m.path, return_size=True)
-        m.image_hash = h
+    try:
+        if os.path.exists(m.path):
+            h, size = calcFileHash(m.path, return_size=True)
+            m.image_hash = h
 
-        for k in file_types:
-            if m.path.endswith(k):
-                m.media_type, m.mime = file_types[k]
-                break
+            for k in file_types:
+                if m.path.endswith(k):
+                    m.media_type, m.mime = file_types[k]
+                    break
+            else:
+                raise TypeError("Invalid File Type {}".format())
+
         else:
-            raise TypeError("Invalid File Type {}".format())
+            raise FileNotFoundError
 
-    else:
-        raise FileNotFoundError
+        # Upload Media File
 
-    # Upload Media File
+        m.status = "uploaded"
+        m.status_date = datetime.datetime.now()
+        m.status_detail = ""
 
-    m.uploaded = True
-    m.uploaded_date = datetime.datetime.now()
 
-    if update_db:
-        db.session.add(m)
-        db.session.commit()
+        if update_db:
+            db.session.add(m)
+            db.session.commit()
+
+    except FileNotFoundError:
+        e = sys.exc_info()[1]
+        m.status = "missing"
+        m.status_date = datetime.datetime.now()
+        m.status_detail = repr(e)
 
     return m

@@ -1,5 +1,7 @@
 from app import db
 
+from enum import Enum
+
 class Media(db.Model):
 
     __tablename__ = "media"
@@ -10,5 +12,6 @@ class Media(db.Model):
     path = db.Column(db.Text, nullable=False, unique=True)
     file_reference = db.Column(db.Text, nullable=False)
     image_hash = db.Column(db.Text)
-    uploaded = db.Column(db.Boolean, default=False, nullable=False)
-    uploaded_date = db.Column(db.DateTime)
+    status = db.Column(db.Enum(*["uploaded","failed","missing","file_changed"]))
+    status_date = db.Column(db.DateTime)
+    status_detail = db.Column(db.Text)
