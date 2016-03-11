@@ -14,7 +14,7 @@ def filter_config(b):
             del b[k]
 
 @user_api.resource("/user")
-class MediaAPI(Resource):
+class UserAPI(Resource):
 
     @staticmethod
     def get():
@@ -25,12 +25,13 @@ class MediaAPI(Resource):
         if u is not None:
             c = {}
             c.update(json.loads(u.config))
+            c["id"] = u.id
             c["user_uuid"] = u.user_uuid
 
             return jsonify(c)
         else:
-            j = jsonify({})
-            #j.status_code = 401
+            j = jsonify({"error": "Not Authorized"})
+            j.status_code = 401
             return j
 
     @staticmethod
@@ -39,7 +40,7 @@ class MediaAPI(Resource):
 
         b = request.get_json()
 
-        u = db.session.query(User).filter(User.login_date != None).filter(User.user_uuid == b["user_uuid"]).first()
+        u = db.session.query(User).filter(User.user_uuid == b["user_uuid"]).first()
 
         print(b,u)
 
@@ -58,6 +59,13 @@ class MediaAPI(Resource):
         db.session.add(u)
         db.session.commit()
 
+        c = {}
+        c.update(json.loads(u.config))
+        c["id"] = u.id
+        c["user_uuid"] = u.user_uuid
+
+        return jsonify(c)        
+
     @staticmethod
     def delete():
         from app import db
@@ -71,36 +79,38 @@ class MediaAPI(Resource):
 
         return jsonify({})
 
-@user_api.resource("/user/<int:user_id>")
-class UserConfig(Resource):
+# @user_api.resource("/user/<int:user_id>")
+# class UserConfig(Resource):
 
-    @staticmethod
-    def get():
-        u = User.query.get_or_404(user_id)
+#     @staticmethod
+#     def get():
+#         u = User.query.get_or_404(user_id)
 
-        c = {}
-        c.update(json.loads(u.config))
-        c["user_uuid"] = u.user_uuid
+#         c = {}
+#         c.update(json.loads(u.config))
+#         c["id"] = u.id
+#         c["user_uuid"] = u.user_uuid
 
-        return jsonify(C)
+#         return jsonify(C)
 
-    @staticmethod
-    def post():
-        from app import db
+#     @staticmethod
+#     def post():
+#         from app import db
  
-        u = User.query.get_or_404(user_id)
+#         u = User.query.get_or_404(user_id)
 
-        b = request.get_json()
+#         b = request.get_json()
 
-        filter_config(b)
+#         filter_config(b)
 
-        u.config = json.dumps(b)
+#         u.config = json.dumps(b)
 
-        db.session.add(u)
-        db.session.commit()
+#         db.session.add(u)
+#         db.session.commit()
 
-        c = {}
-        c.update(json.loads(u.config))
-        c["user_uuid"] = u.user_uuid
+#         c = {}
+#         c.update(json.loads(u.config))
+#         c["id"] = u.id
+#         c["user_uuid"] = u.user_uuid
 
-        return jsonify(c)
+#         return jsonify(c)

@@ -50,9 +50,15 @@ $("#login-button").click(function(){
     }
 
     setConfig(d)
+    $('#loginModal').modal('hide');    
 });
+
 
 $.get('/api/user', function(data){
     document.config = data;
     render()
+}).fail(function(errMsg){
+    $('#loginModal').modal({
+        "backdrop": "static"
+    });
 })

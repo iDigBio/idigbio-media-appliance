@@ -51,11 +51,17 @@ $("#login-button").click(function(){
     }
 
     setConfig(d)
+    $('#loginModal').modal('hide');    
 });
+
 
 $.get('/api/user', function(data){
     document.config = data;
     render()
+}).fail(function(errMsg){
+    $('#loginModal').modal({
+        "backdrop": "static"
+    });
 })
 
 },{"../server/static/components/bootstrap/dist/js/bootstrap.min.js":"/home/godfoder/idigbio-media-appliance/server/static/components/bootstrap/dist/js/bootstrap.min.js","./lib/user.js":"/home/godfoder/idigbio-media-appliance/client/lib/user.js","jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js","react-dom":"/home/godfoder/idigbio-media-appliance/node_modules/react-dom/index.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/user.js":[function(require,module,exports){

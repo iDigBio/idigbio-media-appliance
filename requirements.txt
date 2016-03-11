@@ -4,7 +4,9 @@ Flask-SQLAlchemy
 SQLAlchemy-migrate
 gevent
 idigbio
+easygui
+
 pytest
 pytest-flask
 pytest-sugar
-easygui
+pytest-cov
