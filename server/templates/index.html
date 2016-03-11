@@ -13,7 +13,14 @@
       body {
         padding-top: 60px;
         padding-bottom: 40px;
-      }    
+      }   
+
+      .nav > li > label {
+        line-height: 20px;
+        padding: 10px 15px;
+        margin: 0px;
+      } 
+    
     </style>
 
     <link rel="shortcut icon" href="static/img/favicon.ico">
@@ -21,7 +28,7 @@
 
   <body>
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar navbar-default navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#media-navbar-collapse" aria-expanded="false">
@@ -37,105 +44,13 @@
             <li class="active"><a href="/">Home</a></li>
             <li><a target="_blank" href="https://www.idigbio.org/wiki/index.php/CYWG_iDigBio_Image_Ingestion_Appliance">Docs</a></li>
           </ul>
-          <ul class="nav navbar-nav navbar-form navbar-right">
-              <li><span id="account-uuid-text"></span></li>
-              <li><button id="logout-btn" class="btn btn-warning" type="button">Logout</button></li>
+          <ul class="nav navbar-nav navbar-right" id="userindicator">
           </ul>
         </div><!--/.nav-collapse -->
       </div><!-- /.container-fluid -->
     </div>
 
     <div class="container">
-
-      <div class="modal hide fade" id="loginModal" data-backdrop="static"
-        style="display: none; ">
-        <div class="modal-header">
-          <h3>Please Sign In</h3>
-        </div>
-        <div class="modal-body">
-          <p>Before you can use this application, you first need to sign in
-          using the iDigBio API Account UUID and the API key.
-          After you sign in, this combination will be saved by the
-          application for your future use.
-          </p>
-          <form id="login-form" class="form-horizontal">
-            <div class="control-group">
-              <label class="control-label" for="accountuuid">
-                Account UUID
-              </label>
-              <div class="controls">
-                <input id="accountuuid" name="accountuuid" class="input-large"
-                type="text" placeholder="Account UUID">
-              </div>
-            </div>
-            <div class="control-group">
-              <label class="control-label" for="apikey">API Key</label>
-              <div class="controls">
-                <input id="apikey" name="apikey" class="input-large" type="password" placeholder="API Key">
-              </div>
-            </div>
-            <div class="control-group">
-              <span id="login-error" class="help-block"></span>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <p>
-          We accept your images as is to display as given.
-          By clicking the button, you agree to abide by the
-          <a href="https://www.idigbio.org/sites/default/files/iDigBio_Intellectual_Property_Policy_20140114.pdf"
-              target="_blank">iDigBio Intellectual Property Policy</a>
-            and the
-            <a href="https://www.idigbio.org/content/idigbio-terms-use-policy"
-              target="_blank">iDigBio Terms of Use</a>.
-          </p>
-          <a id="login-button" href="#" class="btn btn-primary">Sign in</a>
-        </div>
-      </div>
-
-      <div class="modal hide fade" id="serviceErrorModal"
-        data-backdrop="static" style="display: none; ">
-        <div class="modal-header">
-          <h3>iDigBio Service Unavailable</h3>
-        </div>
-        <div class="modal-body">
-          <div class="alert alert-block alert-error">
-            <p>Authentication failure, the iDigBio Image Ingestion Tool cannot
-            be used right now. Please check your network connection or come
-            back later. You may also inform iDigBio about the unavailability.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal hide fade" id="CSVFileFormatModal"
-        data-backdrop="static" style="display: none; ">
-        <div class="modal-header">
-          <h3>iDigBio MISC Input CSV File Format</h3>
-        </div>
-        <div class="modal-body">
-          <p>
-          The input CSV file includes one header line (manditory) and lines of
-          records following it. The header line defines the format for each
-          record line. And each record line contains the information of one
-          media record.
-          </p>
-          <p>
-          The fields are separated by ','(comma) and each is surrounded by '"'
-          (double quotation marks). Two fields must be provided:
-          "idigbio:OriginalFileName" (the path of the media file in the local
-          file system) and "idigbio:MediaGUID" (the GUID of the media file).
-          Users can define any other fields.
-          </p>
-          <p>
-            <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_1.csv" target="_blank">Example 1</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_2.csv" target="_blank">Example 2</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.4/input_csv_example_3.csv" target="_blank">Example 3</a>
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-        </div>
-      </div>
-
 
       <div class="row jumbotron text-centered">
         <div class="col-md-4 vcenter">
@@ -148,8 +63,8 @@
 
 
       <!-- Main form used to post path to the service -->
-      <div id="upload-text" class="js-required row">
-        <div class="col-md-12 bg-info">If you do not have the CSV (Comma Separated Values) file for your media, please create one (your media should be within one directory) using the <b>"Generate CSV"</b> tab. Please use the <b>"Upload Via CSV"</b> tab to upload your media through a CSV file to the server. The <b>"Upload History"</b> shows the details of all previous uploads. Please make sure your images comply with the <a target="_blank" href="https://www.idigbio.org/sites/default/files/sites/default/files/Image_File_Format_Recommendations_and_Standards.pdf"> Acceptable Formats.</a>
+      <div id="upload-text" class="js-required row well bg-info">
+        <div class="col-md-12">If you do not have the CSV (Comma Separated Values) file for your media, please create one (your media should be within one directory) using the <b>"Generate CSV"</b> tab. Please use the <b>"Upload Via CSV"</b> tab to upload your media through a CSV file to the server. The <b>"Upload History"</b> shows the details of all previous uploads. Please make sure your images comply with the <a target="_blank" href="https://www.idigbio.org/sites/default/files/sites/default/files/Image_File_Format_Recommendations_and_Standards.pdf"> Acceptable Formats.</a>
         </div>
       </div>
 
@@ -552,11 +467,104 @@
 
     </div> <!-- /container -->
 
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="loginModalLabel">Please Sign In</h4>
+          </div>
+          <div class="modal-body">
+            <p>Before you can use this application, you first need to sign in
+            using the iDigBio API Account UUID and the API key.
+            After you sign in, this combination will be saved by the
+            application for your future use.
+            </p>
+            <form id="login-form" class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="accountuuid">
+                  Account UUID
+                </label>
+                <div class="controls">
+                  <input id="accountuuid" name="accountuuid" class="input-large"
+                  type="text" placeholder="Account UUID">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="apikey">API Key</label>
+                <div class="controls">
+                  <input id="apikey" name="apikey" class="input-large" type="password" placeholder="API Key">
+                </div>
+              </div>
+              <div class="control-group">
+                <span id="login-error" class="help-block"></span>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <p>
+            We accept your images as is to display as given.
+            By clicking the button, you agree to abide by the
+            <a href="https://www.idigbio.org/sites/default/files/iDigBio_Intellectual_Property_Policy_20140114.pdf"
+                target="_blank">iDigBio Intellectual Property Policy</a>
+              and the
+              <a href="https://www.idigbio.org/content/idigbio-terms-use-policy"
+                target="_blank">iDigBio Terms of Use</a>.
+            </p>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button id="login-button" class="btn btn-primary">Sign In</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="serviceErrorModal"
+      data-backdrop="static" style="display: none; ">
+      <div class="modal-header">
+        <h3>iDigBio Service Unavailable</h3>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-block alert-error">
+          <p>Authentication failure, the iDigBio Image Ingestion Tool cannot
+          be used right now. Please check your network connection or come
+          back later. You may also inform iDigBio about the unavailability.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="CSVFileFormatModal"
+      data-backdrop="static" style="display: none; ">
+      <div class="modal-header">
+        <h3>iDigBio MISC Input CSV File Format</h3>
+      </div>
+      <div class="modal-body">
+        <p>
+        The input CSV file includes one header line (manditory) and lines of
+        records following it. The header line defines the format for each
+        record line. And each record line contains the information of one
+        media record.
+        </p>
+        <p>
+        The fields are separated by ','(comma) and each is surrounded by '"'
+        (double quotation marks). Two fields must be provided:
+        "idigbio:OriginalFileName" (the path of the media file in the local
+        file system) and "idigbio:MediaGUID" (the GUID of the media file).
+        Users can define any other fields.
+        </p>
+        <p>
+          <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_1.csv" target="_blank">Example 1</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_2.csv" target="_blank">Example 2</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.4/input_csv_example_3.csv" target="_blank">Example 3</a>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      </div>
+    </div>    
+
     <!-- Le javascript
     ================================================== -->
-    <script src="static/components/jquery/dist/jquery.js"></script>
+    <!--<script src="static/components/jquery/dist/jquery.js"></script>
     <script src="static/components/bootstrap/dist/js/bootstrap.min.js"></script>
-    <!--<script src="static/js/jquery.validate.js"></script>
+    <script src="static/js/jquery.validate.js"></script>
     <script src="static/js/jquery.blockUI.js"></script>
     <script src="static/js/async.min.js"></script>
     <script src="static/js/throbber.js"></script>
@@ -565,10 +573,13 @@
     <script type="text/javascript" charset="utf8" src="static/DataTables/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" charset="utf8" src="static/TableTools/js/TableTools.min.js"></script>
     <script type="text/javascript" charset="utf8" src="static/DataTables/js/DT-bootstrap.js"></script>
-    -->
-    <!-- Site-specific JS -->
+
+
     <script src="static/js/ingestion.ui.js"></script>
     <script src="static/js/history.ui.js"></script>
     <script src="static/js/csvgen.ui.js"></script>
+    -->
+
+    <script src="static/js/client.js"></script>
   </body>
 </html>

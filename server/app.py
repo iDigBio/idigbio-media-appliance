@@ -21,11 +21,13 @@ import models
 def init_routes():
     from api.batch import batch_api
     from api.media import media_api
+    from api.user import user_api
     from api.services import service_api
     from views.index import index_view
 
     app.register_blueprint(media_api.blueprint, url_prefix='/api')
     app.register_blueprint(batch_api.blueprint, url_prefix='/api')
+    app.register_blueprint(user_api.blueprint, url_prefix='/api')
     app.register_blueprint(service_api, url_prefix='/api')
     app.register_blueprint(index_view)
 
