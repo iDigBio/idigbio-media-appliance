@@ -4,11 +4,12 @@ var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
 
 document.config = {}
+document.active = "generate"
 
-// var MainUI = require('lib/index');
+var MainUI = require('./lib/index.js');
 var UserIndicator = require('./lib/user.js');
 
-function setConfig(c) {
+document.setConfig = function(c) {
     $.ajax({
         type: "POST",
         url: "/api/user",
@@ -17,10 +18,9 @@ function setConfig(c) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(data){
-            console.log(data);
             document.config = data;
 
-            render();      
+            document.render();      
 
         },
         failure: function(errMsg) {
@@ -29,12 +29,62 @@ function setConfig(c) {
     });
 }
 
-function render(){
+document.getDir = function(e){
+    var tar = $(e.target);
+    var dir = tar.val();
+    $.ajax({
+        type: "GET",
+        url: "/api/dirprompt",
+        // The key needs to match your method's input parameter (case-sensitive).
+        data: JSON.stringify({"dirname": dir}),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){            
+            if (data.path !== null) {
+                tar.val(data.path);
+                document.formPropChange({"target": tar});                
+            }
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    }); 
+}
 
-        // React.render(
-        //     <MainUI />
-        //     document.querySelector("#main")            
-        // );
+document.getFile = function(e){
+    var tar = $(e.target);
+    var f = tar.val();
+    $.ajax({
+        type: "GET",
+        url: "/api/fileprompt",
+        // The key needs to match your method's input parameter (case-sensitive).
+        data: JSON.stringify({"filename": f}),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){            
+            if (data.path !== null && data.path != ".") {
+                tar.val(data.path);
+                document.formPropChange({"target": tar});
+            }
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    }); 
+}
+
+document.formPropChange = function(e) {
+    var tar = $(e.target);    
+    document.config[tar.attr("name")] = tar.val();
+    document.setConfig(document.config)
+}
+
+document.render = function(){
+
+        ReactDOM.render(
+            <MainUI active={document.active}/>,
+            document.querySelector("#main")            
+        );
 
         ReactDOM.render(
             <UserIndicator />,
@@ -49,14 +99,14 @@ $("#login-button").click(function(){
         "auth_key": $("#login-form #apikey").val()
     }
 
-    setConfig(d)
+    document.setConfig(d)
     $('#loginModal').modal('hide');    
 });
 
 
 $.get('/api/user', function(data){
     document.config = data;
-    render()
+    document.render()
 }).fail(function(errMsg){
     $('#loginModal').modal({
         "backdrop": "static"

@@ -37,5 +37,5 @@ def dirprompt():
 @service_api.route("/fileprompt")
 def fileprompt():
     return jsonify({
-        "path": easygui.fileopenbox()
+        "path": easygui.filesavebox(default="media.csv")
     })

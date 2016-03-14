@@ -51,8 +51,14 @@ class UserAPI(Resource):
             u.config = "{}"
             u.login_date = datetime.datetime.now()
         else:
-            # Validate API Key against API?
-            u.auth_key = b["auth_key"]
+            if "auth_key" in b:
+                # Validate API Key against API?
+                u.auth_key = b["auth_key"]
+
+            filter_config(b)
+            d = json.loads(u.config)
+            d.update(b)
+            u.config = json.dumps(d)
 
             u.login_date = datetime.datetime.now()
 

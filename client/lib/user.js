@@ -8,15 +8,19 @@ module.exports = React.createClass({
         });
     },
     logout: function() {
+        var self=this;
         $.ajax({
             type: "DELETE",
             url: "/api/user",        
             success: function(){
                 document.config = {};
+
+                document.render();
+
+                self.login();
             }
         });
     },
-
     render: function(){
         if (document.config.user_uuid !== undefined) {
             return (

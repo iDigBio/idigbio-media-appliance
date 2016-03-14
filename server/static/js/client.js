@@ -5,11 +5,12 @@ var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
 
 document.config = {}
+document.active = "generate"
 
-// var MainUI = require('lib/index');
+var MainUI = require('./lib/index.js');
 var UserIndicator = require('./lib/user.js');
 
-function setConfig(c) {
+document.setConfig = function(c) {
     $.ajax({
         type: "POST",
         url: "/api/user",
@@ -18,10 +19,9 @@ function setConfig(c) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(data){
-            console.log(data);
             document.config = data;
 
-            render();      
+            document.render();      
 
         },
         failure: function(errMsg) {
@@ -30,12 +30,62 @@ function setConfig(c) {
     });
 }
 
-function render(){
+document.getDir = function(e){
+    var tar = $(e.target);
+    var dir = tar.val();
+    $.ajax({
+        type: "GET",
+        url: "/api/dirprompt",
+        // The key needs to match your method's input parameter (case-sensitive).
+        data: JSON.stringify({"dirname": dir}),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){            
+            if (data.path !== null) {
+                tar.val(data.path);
+                document.formPropChange({"target": tar});                
+            }
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    }); 
+}
 
-        // React.render(
-        //     <MainUI />
-        //     document.querySelector("#main")            
-        // );
+document.getFile = function(e){
+    var tar = $(e.target);
+    var f = tar.val();
+    $.ajax({
+        type: "GET",
+        url: "/api/fileprompt",
+        // The key needs to match your method's input parameter (case-sensitive).
+        data: JSON.stringify({"filename": f}),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){            
+            if (data.path !== null && data.path != ".") {
+                tar.val(data.path);
+                document.formPropChange({"target": tar});
+            }
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    }); 
+}
+
+document.formPropChange = function(e) {
+    var tar = $(e.target);    
+    document.config[tar.attr("name")] = tar.val();
+    document.setConfig(document.config)
+}
+
+document.render = function(){
+
+        ReactDOM.render(
+            React.createElement(MainUI, {active: document.active}),
+            document.querySelector("#main")            
+        );
 
         ReactDOM.render(
             React.createElement(UserIndicator, null),
@@ -50,21 +100,187 @@ $("#login-button").click(function(){
         "auth_key": $("#login-form #apikey").val()
     }
 
-    setConfig(d)
+    document.setConfig(d)
     $('#loginModal').modal('hide');    
 });
 
 
 $.get('/api/user', function(data){
     document.config = data;
-    render()
+    document.render()
 }).fail(function(errMsg){
     $('#loginModal').modal({
         "backdrop": "static"
     });
 })
 
-},{"../server/static/components/bootstrap/dist/js/bootstrap.min.js":"/home/godfoder/idigbio-media-appliance/server/static/components/bootstrap/dist/js/bootstrap.min.js","./lib/user.js":"/home/godfoder/idigbio-media-appliance/client/lib/user.js","jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js","react-dom":"/home/godfoder/idigbio-media-appliance/node_modules/react-dom/index.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/user.js":[function(require,module,exports){
+},{"../server/static/components/bootstrap/dist/js/bootstrap.min.js":"/home/godfoder/idigbio-media-appliance/server/static/components/bootstrap/dist/js/bootstrap.min.js","./lib/index.js":"/home/godfoder/idigbio-media-appliance/client/lib/index.js","./lib/user.js":"/home/godfoder/idigbio-media-appliance/client/lib/user.js","jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js","react-dom":"/home/godfoder/idigbio-media-appliance/node_modules/react-dom/index.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/generate.js":[function(require,module,exports){
+var React = require("react");
+
+module.exports = React.createClass({displayName: "exports",
+    render: function(){
+        return (
+            React.createElement("div", {className: "tab-pane container", id: "generator-tab"}, 
+                React.createElement("div", {className: "row"}, 
+                    React.createElement("div", {className: "col-md-12"}, " ")
+                ), 
+                React.createElement("form", {id: "csv-generation-form", className: "form-horizontal"}, 
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}, "Upload Path *"), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
+                                id: "upload_path", name: "upload_path", placeholder: "The directory or file path containing all your images.", 
+                                rel: "tooltip", "data-title": "e.g. C:\\\\Users\\bob\\Pictures\\ or /Users/alice/Pictures/", onClick: document.getDir, value: document.config.upload_path, onChange: document.formPropChange})
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("div", {className: "col-md-offset-3 col-md-9 checkbox"}, 
+                            React.createElement("label", null, 
+                                React.createElement("input", {type: "checkbox", id: "recursive", value: "recursive"}), "  Also Search Files in Subdirectories."
+                            )
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}, React.createElement("a", {href: "https://www.idigbio.org/sites/default/files/iDigBioGuidGuideForProviders_v1.pdf", target: "_blank"}, "GUID"), " Syntax *"), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            React.createElement("select", {id: "guid_syntax", name: "guid_syntax", className: "form-control", onChange: document.formPropChange, placeholder: "Put in the directory path containing all your images.", rel: "tooltip", "data-title": "GUID can be constructed by hashing from media record, or contructed by combining the GUID Prefix with either the file name or the full fie path."}, 
+                            React.createElement("option", {value: ""})
+                            )
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "form-group hide", id: "g-guidprefix-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}, "GUID Prefix"), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
+                                id: "guid_prefix", name: "guid_prefix", placeholder: "Optional", 
+                                rel: "tooltip", "data-title": "This is the prefix used with the GUID Syntax. e.g. http://ids.flmnh.ufl.edu/herb. GUIDs are contructed by combining the GUID Prefix with either the file name or the full fie path.", 
+                                value: document.config.guid_prefix, onChange: document.formPropChange})
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}, "CSV Save Path"), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
+                                id: "csv_path", name: "csv_path", placeholder: "If left blank, the file will be saved to the image directory.", 
+                                rel: "tooltip", "data-title": "The directory path that you want to save your CSV file.", onClick: document.getFile, 
+                                value: document.config.csv_path, onChange: document.formPropChange})
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            "Note: Fields with * are mandatory."
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "col-md-offset-3 col-md-9"}, 
+                        React.createElement("div", {className: "span2"}, 
+                            React.createElement("button", {id: "csv-generate-button", type: "submit", className: "btn btn-success btn-block"}, 
+                                React.createElement("i", {className: "icon-file icon-white"}), 
+                                React.createElement("span", null, "Generate CSV")
+                            )
+                        )
+                    )
+
+                ), 
+
+                React.createElement("div", {className: "fade hide span6", id: "progressbar-container-csvgen"}, 
+                    React.createElement("div", {id: "progresstext2"}, " ")
+                ), 
+
+                React.createElement("div", {className: "span11", id: "alert-container-2"})
+            )
+        )   
+    }
+});
+
+},{"react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/history.js":[function(require,module,exports){
+var React = require("react");
+
+module.exports = React.createClass({displayName: "exports",
+    render: function(){
+        return (
+            React.createElement("div", null, 
+                "History"
+            )
+        )   
+    }
+});
+
+},{"react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/index.js":[function(require,module,exports){
+var React = require("react");
+
+var HistoryUI = require("./history.js");
+var GenerateUI = require("./generate.js");
+var UploadUI = require("./upload.js");
+
+TabNavItem = React.createClass({displayName: "TabNavItem",
+    render: function(){
+        var cn = "";
+        if (this.props.active){
+            cn = "active";
+        }
+        return (
+            React.createElement("li", {className: cn}, 
+                React.createElement("a", {id: this.props.name, href: "#" + this.props.name + "-tab", onClick: this.props.clicky}, this.props.label)
+            )
+        )
+    }
+})
+
+module.exports = React.createClass({displayName: "exports",
+    activateTab: function(e) {
+        document.active = e.target.id;
+        document.render();
+
+    },
+    render: function(){
+        var self = this;
+        var tabs = [["generate", "Generate CSV"], ["upload","Upload Via CSV"] , ["history", "Upload History"]].map(function(a){
+            var n = a[0];
+            var l = a[1];
+            return React.createElement(TabNavItem, {key: n, name: n, clicky: self.activateTab, label: l, active: self.props.active == n}) 
+        })
+        if (this.props.active == "upload") {
+            activeTab = React.createElement(UploadUI, null)
+        } else if (this.props.active == "history") {
+            activeTab = React.createElement(HistoryUI, null)
+        } else if (this.props.active == "generate") {
+            activeTab = React.createElement(GenerateUI, null)
+        } else {
+            activeTab = React.createElement(UploadUI, null)
+        }
+        return (
+            React.createElement("div", {id: "upload-dashboard", className: "js-required row"}, 
+                React.createElement("ul", {className: "nav nav-tabs"}, 
+                    tabs
+                ), 
+
+                activeTab
+            )
+        )   
+    }
+});
+
+},{"./generate.js":"/home/godfoder/idigbio-media-appliance/client/lib/generate.js","./history.js":"/home/godfoder/idigbio-media-appliance/client/lib/history.js","./upload.js":"/home/godfoder/idigbio-media-appliance/client/lib/upload.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/upload.js":[function(require,module,exports){
+var React = require("react");
+
+module.exports = React.createClass({displayName: "exports",
+    render: function(){
+        return (
+            React.createElement("div", null, 
+                "Upload"
+            )
+        )   
+    }
+});
+
+},{"react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/user.js":[function(require,module,exports){
 var React = require("react");
 
 module.exports = React.createClass({displayName: "exports",
@@ -75,15 +291,19 @@ module.exports = React.createClass({displayName: "exports",
         });
     },
     logout: function() {
+        var self=this;
         $.ajax({
             type: "DELETE",
             url: "/api/user",        
             success: function(){
                 document.config = {};
+
+                document.render();
+
+                self.login();
             }
         });
     },
-
     render: function(){
         if (document.config.user_uuid !== undefined) {
             return (
