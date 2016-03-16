@@ -14,8 +14,8 @@ app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-
-import models  # noqa
+from models import *  # noqa
+from create_db import create_or_update_db  # noqa
 
 
 def init_routes():
@@ -34,6 +34,7 @@ def init_routes():
 if __name__ == '__main__':
     dbg = "True" == os.getenv("DEBUG", "False")
     init_routes()
+    create_or_update_db()
     if dbg:
         app.run(debug=True)
     else:

@@ -5,6 +5,7 @@ SQLAlchemy-migrate
 gevent
 idigbio
 easygui
+appdirs
 
 pytest
 pytest-flask
