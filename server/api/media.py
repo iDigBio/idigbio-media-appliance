@@ -6,11 +6,16 @@ from models import Media
 
 media_api = Api(Blueprint("media_api", __name__))
 
+
 @media_api.resource("/media")
 class MediaAPI(Resource):
 
     @staticmethod
-    def get():        
+    def get():
+        status_date = None
+        if media.status_date is not None:
+            status_date = media.status_date.isoformat()
+
         return {
             "count": Media.query.count(),
             "media": [
@@ -22,7 +27,7 @@ class MediaAPI(Resource):
                     "file_reference": media.file_reference,
                     "image_hash": media.image_hash,
                     "status": media.status,
-                    "status_date": media.status_date.isoformat() if media.status_date is not None else None,
+                    "status_date": status_date,
                     "status_detail": media.status_detail
                 } for media in Media.query[:100]
             ]
@@ -51,18 +56,23 @@ class MediaAPI(Resource):
 
         db.session.add(media)
         db.session.commit()
- 
+
+        status_date = None
+        if media.status_date is not None:
+            status_date = media.status_date.isoformat()
+
         return {
             "id": media.id,
             "path": media.path,
             "media_type": media.media_type,
-            "mime": media.mime,            
+            "mime": media.mime,
             "file_reference": media.file_reference,
             "image_hash": media.image_hash,
             "status": media.status,
-            "status_date": media.status_date.isoformat() if media.status_date is not None else None,
+            "status_date": status_date
             "status_detail": media.status_detail
         }
+
 
 @media_api.resource("/media/<int:media_id>")
 class MediaItemAPI(Resource):
@@ -73,17 +83,22 @@ class MediaItemAPI(Resource):
 
         media = Media.query.get_or_404(media_id)
 
+        status_date = None
+        if media.status_date is not None:
+            status_date = media.status_date.isoformat()
+
         return {
             "id": media.id,
             "path": media.path,
             "media_type": media.media_type,
-            "mime": media.mime,            
+            "mime": media.mime,
             "file_reference": media.file_reference,
             "image_hash": media.image_hash,
             "status": media.status,
-            "status_date": media.status_date.isoformat() if media.status_date is not None else None,
+            "status_date": status_date
             "status_detail": media.status_detail
         }
+
 
 @media_api.resource("/media/status")
 class MediaStatusAPI(Resource):
@@ -92,7 +107,8 @@ class MediaStatusAPI(Resource):
     def get():
         from app import db
 
-        statuses = db.session.query(db.func.count(Media.status).label("c"), Media.status).group_by(Media.status).all()
+        statuses = db.session.query(db.func.count(Media.status).label(
+            "c"), Media.status).group_by(Media.status).all()
 
         resp_d = {
             "count": Media.query.count()

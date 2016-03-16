@@ -4,23 +4,26 @@ import datetime
 from flask import Blueprint, request, jsonify
 from flask_restful import Api, Resource
 
-from models import User
+from models import AppUser
 
-user_api = Api(Blueprint("user_api", __name__))
+appuser_api = Api(Blueprint("appuser_api", __name__))
+
 
 def filter_config(b):
     for k in list(b.keys()):
         if k in ["user_uuid", "auth_key"]:
             del b[k]
 
-@user_api.resource("/user")
-class UserAPI(Resource):
+
+@appuser_api.resource("/appuser")
+class AppUserAPI(Resource):
 
     @staticmethod
     def get():
         from app import db
 
-        u = db.session.query(User).filter(User.login_date != None).order_by(User.login_date.desc()).first()
+        u = db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
+            AppUser.login_date.desc()).first()
 
         if u is not None:
             c = {}
@@ -40,12 +43,13 @@ class UserAPI(Resource):
 
         b = request.get_json()
 
-        u = db.session.query(User).filter(User.user_uuid == b["user_uuid"]).first()
+        u = db.session.query(AppUser).filter(
+            AppUser.user_uuid == b["user_uuid"]).first()
 
-        print(b,u)
+        print(b, u)
 
         if u is None:
-            u = User()
+            u = AppUser()
             u.user_uuid = b["user_uuid"]
             u.auth_key = b["auth_key"]
             u.config = "{}"
@@ -70,13 +74,14 @@ class UserAPI(Resource):
         c["id"] = u.id
         c["user_uuid"] = u.user_uuid
 
-        return jsonify(c)        
+        return jsonify(c)
 
     @staticmethod
     def delete():
         from app import db
 
-        u = db.session.query(User).filter(User.login_date != None).order_by(User.login_date.desc()).first()
+        u = db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
+            AppUser.login_date.desc()).first()
         if u is not None:
             u.login_date = None
 
@@ -85,12 +90,12 @@ class UserAPI(Resource):
 
         return jsonify({})
 
-# @user_api.resource("/user/<int:user_id>")
-# class UserConfig(Resource):
+# @appuser_api.resource("/user/<int:user_id>")
+# class AppUserConfig(Resource):
 
 #     @staticmethod
 #     def get():
-#         u = User.query.get_or_404(user_id)
+#         u = AppUser.query.get_or_404(user_id)
 
 #         c = {}
 #         c.update(json.loads(u.config))
@@ -102,8 +107,8 @@ class UserAPI(Resource):
 #     @staticmethod
 #     def post():
 #         from app import db
- 
-#         u = User.query.get_or_404(user_id)
+
+#         u = AppUser.query.get_or_404(user_id)
 
 #         b = request.get_json()
 

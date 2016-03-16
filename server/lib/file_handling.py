@@ -60,7 +60,6 @@ def process_media(m, update_db=True):
         m.status_date = datetime.datetime.now()
         m.status_detail = ""
 
-
         if update_db:
             db.session.add(m)
             db.session.commit()

@@ -1,1 +1,1 @@
-__all__ = ["batch","media"]
+__all__ = ["batch", "media", "appuser"]

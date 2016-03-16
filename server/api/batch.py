@@ -4,12 +4,13 @@ from models import Batch
 
 batch_api = Api(Blueprint("batch_api", __name__))
 
+
 @batch_api.resource("/batches")
 class BatchesAPI(Resource):
 
     @staticmethod
     def get():
-        return { "batches": [
+        return {"batches": [
             {
                 "id": batch.id,
                 "csvfile": batch.csvfile
@@ -24,11 +25,12 @@ class BatchesAPI(Resource):
         batch.csvfile = request.json.csvfile
         db.session.add(batch)
         db.session.commit()
- 
+
         return {
             "id": batch.id,
             "csvfile": batch.csvfile
         }
+
 
 @batch_api.resource("/batch/<int:batch_id>")
 class BatchAPI(Resource):

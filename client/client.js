@@ -4,32 +4,37 @@ var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
 
 document.config = {}
-document.active = "generate"
+document.active = "upload"
+document.save_failure = false;
+document.messages = [];
 
 var MainUI = require('./lib/index.js');
 var UserIndicator = require('./lib/user.js');
+var WarningIndicator = require('./lib/warning.js');
 
 document.setConfig = function(c) {
+    // Optimistically re-render to avoid having to round trip to server before inputs change
+    document.config = c;
+    document.render();
     $.ajax({
         type: "POST",
         url: "/api/user",
-        // The key needs to match your method's input parameter (case-sensitive).
         data: JSON.stringify(c),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(data){
-            document.config = data;
-
-            document.render();      
 
         },
-        failure: function(errMsg) {
-            console.log(errMsg);
+        error: function(errMsg) {
+            // Warning message on config failure?
+            document.save_failure = true;
+            document.render();
         }
     });
 }
 
 document.getDir = function(e){
+    e.preventDefault();
     var tar = $(e.target);
     var dir = tar.val();
     $.ajax({
@@ -48,10 +53,12 @@ document.getDir = function(e){
         failure: function(errMsg) {
             console.log(errMsg);
         }
-    }); 
+    });
+    return false;
 }
 
 document.getFile = function(e){
+    e.preventDefault();
     var tar = $(e.target);
     var f = tar.val();
     $.ajax({
@@ -70,21 +77,32 @@ document.getFile = function(e){
         failure: function(errMsg) {
             console.log(errMsg);
         }
-    }); 
+    });
+    return false;
 }
 
+var configUpdateTask;
 document.formPropChange = function(e) {
-    var tar = $(e.target);    
-    document.config[tar.attr("name")] = tar.val();
-    document.setConfig(document.config)
+    var tar = $(e.target);
+    var v = tar.val();
+    if (tar.attr("type") == "checkbox") {
+        v = e.target.checked;
+    }
+
+    document.config[tar.attr("name")] = v;
+    document.setConfig(document.config);
 }
 
 document.render = function(){
-
         ReactDOM.render(
             <MainUI active={document.active}/>,
             document.querySelector("#main")            
         );
+
+        ReactDOM.render(
+            <WarningIndicator />,
+            document.querySelector("#warningindicator")
+        );         
 
         ReactDOM.render(
             <UserIndicator />,

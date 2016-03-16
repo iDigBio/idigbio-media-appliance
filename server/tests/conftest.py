@@ -1,13 +1,16 @@
 import pytest
 import os
 
+
 @pytest.fixture
 def datadir():
     return os.path.join(os.path.abspath(os.path.dirname(__file__)), "testdata")
 
+
 @pytest.fixture
 def send_json():
     return [("Content-Type", "application/json")]
+
 
 @pytest.fixture
 def json_in_out(send_json, accept_json):
@@ -23,7 +26,7 @@ def app(request):
     db.session.commit()
     try:
         init_routes()
-    except: # can only initialize apps once
+    except:  # can only initialize apps once
         pass
     flask_app.debug = True
 

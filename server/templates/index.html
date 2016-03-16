@@ -15,11 +15,15 @@
         padding-bottom: 40px;
       }   
 
-      .nav > li > label {
+      .na vli > label {
         line-height: 20px;
         padding: 10px 15px;
         margin: 0px;
       } 
+
+      div.inline-div {
+        display: inline-block;
+      }
     
     </style>
 
@@ -44,7 +48,11 @@
             <li class="active"><a href="/">Home</a></li>
             <li><a target="_blank" href="https://www.idigbio.org/wiki/index.php/CYWG_iDigBio_Image_Ingestion_Appliance">Docs</a></li>
           </ul>
-          <ul class="nav navbar-nav navbar-right" id="userindicator">
+          <ul class="nav navbar-nav navbar-right" >
+            <div id="warningindicator" class="inline-div">
+            </div>
+            <div id="userindicator" class="inline-div">
+            </div>
           </ul>
         </div><!--/.nav-collapse -->
       </div><!-- /.container-fluid -->
@@ -64,7 +72,7 @@
 
       <!-- Main form used to post path to the service -->
       <div id="upload-text" class="js-required row well bg-info">
-        <div class="col-md-12">If you do not have the CSV (Comma Separated Values) file for your media, please create one (your media should be within one directory) using the <b>"Generate CSV"</b> tab. Please use the <b>"Upload Via CSV"</b> tab to upload your media through a CSV file to the server. The <b>"Upload History"</b> shows the details of all previous uploads. Please make sure your images comply with the <a target="_blank" href="https://www.idigbio.org/sites/default/files/sites/default/files/Image_File_Format_Recommendations_and_Standards.pdf"> Acceptable Formats.</a>
+        <div class="col-md-12">If you do not have the CSV (Comma Separated Values) file for your media, please create one (your media should be within one directory) using the <b>Generate CSV</b> tab. Please use the <b>Upload Via CSV</b> tab to upload your media through a CSV file to the server. The <b>Upload History</b> shows the details of all previous uploads. Please make sure your images comply with the <a target="_blank" href="https://www.idigbio.org/sites/default/files/sites/default/files/Image_File_Format_Recommendations_and_Standards.pdf"> Acceptable Formats.</a>
         </div>
       </div>
 
@@ -181,33 +189,37 @@
       </div>
     </div>
 
-    <div class="modal fade" id="CSVFileFormatModal"
-      data-backdrop="static" style="display: none; ">
-      <div class="modal-header">
-        <h3>iDigBio MISC Input CSV File Format</h3>
+    <div class="modal fade" id="CSVFileFormatModal" tabindex="-1" role="dialog" aria-labelledby="csvModalHeader">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">      
+          <div class="modal-header">
+            <h3 id="csvModalHeader">iDigBio MISC Input CSV File Format</h3>
+          </div>
+          <div class="modal-body">
+            <p>
+            The input CSV file includes one header line (manditory) and lines of
+            records following it. The header line defines the format for each
+            record line. And each record line contains the information of one
+            media record.
+            </p>
+            <p>
+            The fields are separated by ','(comma) and each is surrounded by '"'
+            (double quotation marks). Two fields must be provided:
+            "idigbio:OriginalFileName" (the path of the media file in the local
+            file system) and "idigbio:MediaGUID" (the GUID of the media file).
+            Users can define any other fields.
+            </p>
+            <p>
+              <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_1.csv" target="_blank">Example 1</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_2.csv" target="_blank">Example 2</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.4/input_csv_example_3.csv" target="_blank">Example 3</a>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+          </div>
+        </div>
       </div>
-      <div class="modal-body">
-        <p>
-        The input CSV file includes one header line (manditory) and lines of
-        records following it. The header line defines the format for each
-        record line. And each record line contains the information of one
-        media record.
-        </p>
-        <p>
-        The fields are separated by ','(comma) and each is surrounded by '"'
-        (double quotation marks). Two fields must be provided:
-        "idigbio:OriginalFileName" (the path of the media file in the local
-        file system) and "idigbio:MediaGUID" (the GUID of the media file).
-        Users can define any other fields.
-        </p>
-        <p>
-          <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_1.csv" target="_blank">Example 1</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.2/input_csv_example_2.csv" target="_blank">Example 2</a>, <a href="http://www.acis.ufl.edu/~yonggang/idigbio/V3.4/input_csv_example_3.csv" target="_blank">Example 3</a>
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-      </div>
-    </div>    
+    </div>
+
 
     <!-- Le javascript
     ================================================== -->

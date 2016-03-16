@@ -15,6 +15,7 @@ guid_mode = {
     "hash": lambda path: calcFileHash(path),
 }
 
+
 def scan_dir(directory, guid_type="uuid", guid_params=None):
     if guid_type == "regex":
         ref_func = partial(*guid_params)
@@ -22,13 +23,14 @@ def scan_dir(directory, guid_type="uuid", guid_params=None):
         ref_func = guid_mode[guid_type]
 
     directory = os.path.abspath(directory)
-    dir_objects = {m.path: m for m in Media.query.filter(Media.path.like(directory + "%")).all()}
+    dir_objects = {m.path: m for m in Media.query.filter(
+        Media.path.like(directory + "%")).all()}
 
     if os.path.exists(directory):
         for root, dirs, files in os.walk(directory):
             for f in files:
-                if f.rsplit(".",1)[-1] in file_types:
-                    p = os.path.join(root,f)
+                if f.rsplit(".", 1)[-1] in file_types:
+                    p = os.path.join(root, f)
                     m = None
                     if p in dir_objects:
                         m = dir_objects[p]

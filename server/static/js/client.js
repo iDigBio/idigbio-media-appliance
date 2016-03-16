@@ -5,32 +5,37 @@ var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
 
 document.config = {}
-document.active = "generate"
+document.active = "upload"
+document.save_failure = false;
+document.messages = [];
 
 var MainUI = require('./lib/index.js');
 var UserIndicator = require('./lib/user.js');
+var WarningIndicator = require('./lib/warning.js');
 
 document.setConfig = function(c) {
+    // Optimistically re-render to avoid having to round trip to server before inputs change
+    document.config = c;
+    document.render();
     $.ajax({
         type: "POST",
         url: "/api/user",
-        // The key needs to match your method's input parameter (case-sensitive).
         data: JSON.stringify(c),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(data){
-            document.config = data;
-
-            document.render();      
 
         },
-        failure: function(errMsg) {
-            console.log(errMsg);
+        error: function(errMsg) {
+            // Warning message on config failure?
+            document.save_failure = true;
+            document.render();
         }
     });
 }
 
 document.getDir = function(e){
+    e.preventDefault();
     var tar = $(e.target);
     var dir = tar.val();
     $.ajax({
@@ -49,10 +54,12 @@ document.getDir = function(e){
         failure: function(errMsg) {
             console.log(errMsg);
         }
-    }); 
+    });
+    return false;
 }
 
 document.getFile = function(e){
+    e.preventDefault();
     var tar = $(e.target);
     var f = tar.val();
     $.ajax({
@@ -71,21 +78,32 @@ document.getFile = function(e){
         failure: function(errMsg) {
             console.log(errMsg);
         }
-    }); 
+    });
+    return false;
 }
 
+var configUpdateTask;
 document.formPropChange = function(e) {
-    var tar = $(e.target);    
-    document.config[tar.attr("name")] = tar.val();
-    document.setConfig(document.config)
+    var tar = $(e.target);
+    var v = tar.val();
+    if (tar.attr("type") == "checkbox") {
+        v = e.target.checked;
+    }
+
+    document.config[tar.attr("name")] = v;
+    document.setConfig(document.config);
 }
 
 document.render = function(){
-
         ReactDOM.render(
             React.createElement(MainUI, {active: document.active}),
             document.querySelector("#main")            
         );
+
+        ReactDOM.render(
+            React.createElement(WarningIndicator, null),
+            document.querySelector("#warningindicator")
+        );         
 
         ReactDOM.render(
             React.createElement(UserIndicator, null),
@@ -114,10 +132,57 @@ $.get('/api/user', function(data){
     });
 })
 
-},{"../server/static/components/bootstrap/dist/js/bootstrap.min.js":"/home/godfoder/idigbio-media-appliance/server/static/components/bootstrap/dist/js/bootstrap.min.js","./lib/index.js":"/home/godfoder/idigbio-media-appliance/client/lib/index.js","./lib/user.js":"/home/godfoder/idigbio-media-appliance/client/lib/user.js","jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js","react-dom":"/home/godfoder/idigbio-media-appliance/node_modules/react-dom/index.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/generate.js":[function(require,module,exports){
+},{"../server/static/components/bootstrap/dist/js/bootstrap.min.js":"/home/godfoder/idigbio-media-appliance/server/static/components/bootstrap/dist/js/bootstrap.min.js","./lib/index.js":"/home/godfoder/idigbio-media-appliance/client/lib/index.js","./lib/user.js":"/home/godfoder/idigbio-media-appliance/client/lib/user.js","./lib/warning.js":"/home/godfoder/idigbio-media-appliance/client/lib/warning.js","jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js","react-dom":"/home/godfoder/idigbio-media-appliance/node_modules/react-dom/index.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/generate.js":[function(require,module,exports){
 var React = require("react");
 
 module.exports = React.createClass({displayName: "exports",
+    getInitialState: function(){
+        return {
+            "prefixHidden": (document.config.guid_syntax == "filename" || document.config.guid_syntax == "fullpath") ? "" : "hide"
+        }
+    },
+    guidSyntaxChange: function(e) {
+        var tar = $(e.target);
+        this.state.prefixHidden = (tar.val() == "filename" || tar.val() == "fullpath") ? "" : "hide";
+
+        document.formPropChange(e);
+    },
+    addonClick: function(e) {
+        var tar = $(e.target);
+        tar.next().click();
+    },
+    generateCSV: function(e, react_id, raw_event, norender){
+        e.preventDefault();
+        var path = "media.csv"
+        if (document.config.csv_path) {
+            path = document.config.csv_path
+        }
+        console.log("Generate");
+        document.active = "upload";
+        document.messages.push({
+            "level": "info",
+            "text": "CSV Generation to " + path + "started.",
+            "ts": Date()
+        });
+        console.log(norender)
+        if (norender === undefined) {
+            document.render();
+        }
+        return false;
+    },
+    generateCSVUpload: function(e, react_id, raw_event){
+        e.preventDefault();
+        this.generateCSV(e, react_id, raw_event, true);
+        console.log("Upload");
+        document.active = "history";
+        document.messages.push({
+            "level": "info",
+            "text": "Upload Started",
+            "ts": Date()
+        });
+        document.render();
+        return false;
+    },
     render: function(){
         return (
             React.createElement("div", {className: "tab-pane container", id: "generator-tab"}, 
@@ -128,16 +193,19 @@ module.exports = React.createClass({displayName: "exports",
                     React.createElement("div", {className: "form-group"}, 
                         React.createElement("label", {className: "col-md-3 control-label"}, "Upload Path *"), 
                         React.createElement("div", {className: "col-md-9"}, 
-                            React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
-                                id: "upload_path", name: "upload_path", placeholder: "The directory or file path containing all your images.", 
-                                rel: "tooltip", "data-title": "e.g. C:\\\\Users\\bob\\Pictures\\ or /Users/alice/Pictures/", onClick: document.getDir, value: document.config.upload_path, onChange: document.formPropChange})
+                            React.createElement("div", {className: "input-group"}, 
+                                React.createElement("div", {className: "input-group-addon", onClick: this.addonClick}, "Choose Directory"), 
+                                React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
+                                    id: "upload_path", name: "upload_path", placeholder: "The directory or file path containing all your images.", 
+                                    rel: "tooltip", "data-title": "e.g. C:\\\\Users\\bob\\Pictures\\ or /Users/alice/Pictures/", onClick: document.getDir, value: document.config.upload_path, onChange: document.formPropChange})
+                            )
                         )
                     ), 
 
                     React.createElement("div", {className: "form-group"}, 
                         React.createElement("div", {className: "col-md-offset-3 col-md-9 checkbox"}, 
                             React.createElement("label", null, 
-                                React.createElement("input", {type: "checkbox", id: "recursive", value: "recursive"}), "  Also Search Files in Subdirectories."
+                                React.createElement("input", {type: "checkbox", id: "recursive", name: "recursive", checked: document.config.recursive, onChange: document.formPropChange}), "  Also Search Files in Subdirectories."
                             )
                         )
                     ), 
@@ -145,14 +213,17 @@ module.exports = React.createClass({displayName: "exports",
                     React.createElement("div", {className: "form-group"}, 
                         React.createElement("label", {className: "col-md-3 control-label"}, React.createElement("a", {href: "https://www.idigbio.org/sites/default/files/iDigBioGuidGuideForProviders_v1.pdf", target: "_blank"}, "GUID"), " Syntax *"), 
                         React.createElement("div", {className: "col-md-9"}, 
-                            React.createElement("select", {id: "guid_syntax", name: "guid_syntax", className: "form-control", onChange: document.formPropChange, placeholder: "Put in the directory path containing all your images.", rel: "tooltip", "data-title": "GUID can be constructed by hashing from media record, or contructed by combining the GUID Prefix with either the file name or the full fie path."}, 
-                            React.createElement("option", {value: ""})
+                            React.createElement("select", {id: "guid_syntax", name: "guid_syntax", className: "form-control", value: document.config.guid_syntax, onChange: this.guidSyntaxChange, placeholder: "Put in the directory path containing all your images.", rel: "tooltip", "data-title": "GUID can be constructed by hashing from media record, or contructed by combining the GUID Prefix with either the file name or the full fie path."}, 
+                                React.createElement("option", {value: "image_hash"}, "GUID = hash of image contents"), 
+                                React.createElement("option", {value: "hash"}, "GUID = hash of record information"), 
+                                React.createElement("option", {value: "filename"}, "GUID = [GUID Prefix][File Name]"), 
+                                React.createElement("option", {value: "fullpath"}, "GUID = [GUID Prefix][Full Path]")
                             )
                         )
                     ), 
 
-                    React.createElement("div", {className: "form-group hide", id: "g-guidprefix-group"}, 
-                        React.createElement("label", {className: "col-md-3 control-label"}, "GUID Prefix"), 
+                    React.createElement("div", {className: "form-group " + this.state.prefixHidden}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}, "GUID Prefix *"), 
                         React.createElement("div", {className: "col-md-9"}, 
                             React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
                                 id: "guid_prefix", name: "guid_prefix", placeholder: "Optional", 
@@ -162,12 +233,15 @@ module.exports = React.createClass({displayName: "exports",
                     ), 
 
                     React.createElement("div", {className: "form-group"}, 
-                        React.createElement("label", {className: "col-md-3 control-label"}, "CSV Save Path"), 
+                        React.createElement("label", {className: "col-md-3 control-label"}, "CSV Save Location"), 
                         React.createElement("div", {className: "col-md-9"}, 
-                            React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
-                                id: "csv_path", name: "csv_path", placeholder: "If left blank, the file will be saved to the image directory.", 
-                                rel: "tooltip", "data-title": "The directory path that you want to save your CSV file.", onClick: document.getFile, 
-                                value: document.config.csv_path, onChange: document.formPropChange})
+                            React.createElement("div", {className: "input-group"}, 
+                                React.createElement("div", {className: "input-group-addon", onClick: this.addonClick}, "Choose File"), 
+                                React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
+                                    id: "csv_path", name: "csv_path", placeholder: "If left blank, the file will be saved to the image directory.", 
+                                    rel: "tooltip", "data-title": "The directory path that you want to save your CSV file.", onClick: document.getFile, 
+                                    value: document.config.csv_path, onChange: document.formPropChange})
+                            )
                         )
                     ), 
 
@@ -178,22 +252,22 @@ module.exports = React.createClass({displayName: "exports",
                         )
                     ), 
 
-                    React.createElement("div", {className: "col-md-offset-3 col-md-9"}, 
-                        React.createElement("div", {className: "span2"}, 
-                            React.createElement("button", {id: "csv-generate-button", type: "submit", className: "btn btn-success btn-block"}, 
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("div", {className: "col-md-offset-3 col-md-4"}, 
+                            React.createElement("button", {id: "csv-generate-button", className: "btn btn-success btn-block", onClick: this.generateCSV}, 
                                 React.createElement("i", {className: "icon-file icon-white"}), 
                                 React.createElement("span", null, "Generate CSV")
+                            )
+                        ), 
+                        React.createElement("div", {className: "col-md-4"}, 
+                            React.createElement("button", {id: "csv-generate-upload-button", className: "btn btn-primary btn-block", onClick: this.generateCSVUpload}, 
+                                React.createElement("i", {className: "icon-file icon-white"}), 
+                                React.createElement("span", null, "Generate CSV & Upload Files")
                             )
                         )
                     )
 
-                ), 
-
-                React.createElement("div", {className: "fade hide span6", id: "progressbar-container-csvgen"}, 
-                    React.createElement("div", {id: "progresstext2"}, " ")
-                ), 
-
-                React.createElement("div", {className: "span11", id: "alert-container-2"})
+                )
             )
         )   
     }
@@ -206,7 +280,7 @@ module.exports = React.createClass({displayName: "exports",
     render: function(){
         return (
             React.createElement("div", null, 
-                "History"
+                "\"History\""
             )
         )   
     }
@@ -270,11 +344,72 @@ module.exports = React.createClass({displayName: "exports",
 },{"./generate.js":"/home/godfoder/idigbio-media-appliance/client/lib/generate.js","./history.js":"/home/godfoder/idigbio-media-appliance/client/lib/history.js","./upload.js":"/home/godfoder/idigbio-media-appliance/client/lib/upload.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/upload.js":[function(require,module,exports){
 var React = require("react");
 
+  // "CC0": ["CC0", "(Public Domain)", "http://creativecommons.org/publicdomain/zero/1.0/"],
+  // "CC BY": ["CC BY", "(Attribution)", "http://creativecommons.org/licenses/by/4.0/"],
+  // "CC BY-SA": ["CC BY-SA", "(Attribution-ShareAlike)", "http://creativecommons.org/licenses/by-sa/4.0/"],
+  // "CC BY-NC": ["CC BY-NC", "(Attribution-Non-Commercial)", "http://creativecommons.org/licenses/by-nc/4.0/"],
+  // "CC BY-NC-SA": ["CC BY-NC-SA", "(Attribution-NonCommercial-ShareAlike)", "http://creativecommons.org/licenses/by-nc-sa/4.0/"]
+
 module.exports = React.createClass({displayName: "exports",
     render: function(){
         return (
-            React.createElement("div", null, 
-                "Upload"
+            React.createElement("div", {className: "tab-pane container", id: "upload-tab"}, 
+                React.createElement("div", {className: "row"}, 
+                    React.createElement("div", {className: "col-md-12"}, " ")
+                ), 
+                React.createElement("form", {id: "csv-upload-form", className: "form-horizontal"}, 
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}, "Image ", React.createElement("a", {href: "http://creativecommons.org/licenses/", target: "_blank"}, "License"), " *"), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            React.createElement("select", {id: "license", name: "license", className: "form-control", rel: "tooltip", 
+                            "data-title": "Select the license you want to associate with the images you upload.", 
+                            value: document.config.license, onChange: document.formPropChange}, 
+                                React.createElement("option", {value: "CC0"}, "CC0"), 
+                                React.createElement("option", {value: "CC BY"}, "CC BY"), 
+                                React.createElement("option", {value: "CC BY-SA"}, "CC BY-SA"), 
+                                React.createElement("option", {value: "CC BY-NC"}, "CC BY-NC"), 
+                                React.createElement("option", {value: "CC BY-NC-SA"}, "CC BY-NC-SA")
+                            )
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}, "CSV File Full Path *"), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            React.createElement("div", {className: "input-group"}, 
+                                React.createElement("div", {className: "input-group-addon", onClick: this.addonClick}, "Choose File"), 
+                                React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
+                                    id: "csv_path", placeholder: "This should be the full path including the CSV file name.", 
+                                    rel: "tooltip", name: "csv-path", "data-title": "e.g. /Users/you/collection.csv", 
+                                    value: document.config.csv_path, onChange: document.formPropChange, onClick: document.getFile})
+                            )
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "form-group"}, 
+                        React.createElement("label", {className: "col-md-3 control-label"}), 
+                        React.createElement("div", {className: "col-md-9"}, 
+                            "Note: Fields with * are mandatory."
+                        )
+                    ), 
+
+                    React.createElement("div", {className: "col-md-offset-3 col-md-9"}, 
+
+                        React.createElement("div", {className: "span3"}, 
+                            React.createElement("button", {id: "csv-upload-button", type: "submit", className: "btn btn-primary btn-block"}, 
+                                React.createElement("i", {className: "icon-upload icon-white"}), 
+                                React.createElement("span", null, "Upload")
+                            )
+                        ), 
+
+                        React.createElement("div", {className: ""}, 
+                            React.createElement("a", {href: "#CSVFileFormatModal", id: "csv-file-format-button", role: "button", className: "btn btn-inverse btn-block", "data-toggle": "modal"}, 
+                                React.createElement("i", {className: "icon-list-alt icon-white"}), 
+                                React.createElement("span", null, "CSV file format")
+                            )
+                        )
+                    )
+                )
             )
         )   
     }
@@ -312,6 +447,26 @@ module.exports = React.createClass({displayName: "exports",
         } else {
             return (
                 React.createElement("li", null, React.createElement("button", {id: "login-btn", className: "navbar-btn btn btn-warning", type: "button", onClick: this.login}, "Login"))
+            )
+        }
+    }
+
+})
+
+},{"react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/warning.js":[function(require,module,exports){
+var React = require("react");
+
+module.exports = React.createClass({displayName: "exports",
+
+    render: function(){
+        console.log("save_failure", document.save_failure)
+        if (document.save_failure) {
+            return (
+                React.createElement("li", null, "Warning! ", document.messages.length, " ")
+            )
+        } else {
+            return (
+                React.createElement("li", null, "Config OK ", document.messages.length, " ")
             )
         }
     }
