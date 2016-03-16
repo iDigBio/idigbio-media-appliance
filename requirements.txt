@@ -1,7 +1,6 @@
 Flask
 Flask-RESTful
 Flask-SQLAlchemy
-SQLAlchemy-migrate
 gevent
 idigbio
 easygui
