@@ -1,7 +1,7 @@
 import json
 import datetime
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from flask_restful import Api, Resource
 
 from models import AppUser
@@ -15,15 +15,20 @@ def filter_config(b):
             del b[k]
 
 
+@appuser_api.blueprint.before_app_request
+def set_current_user():
+    from app import db
+
+    g.appuser = db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
+            AppUser.login_date.desc()).first()
+
+
 @appuser_api.resource("/appuser")
 class AppUserAPI(Resource):
 
     @staticmethod
     def get():
-        from app import db
-
-        u = db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
-            AppUser.login_date.desc()).first()
+        u = g.appuser
 
         if u is not None:
             c = {}

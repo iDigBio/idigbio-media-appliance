@@ -3,13 +3,13 @@ import json
 from flask import url_for
 
 
-def test_media_api_list(json_in_out, client):
+def test_media_api_list(api_login, json_in_out, client):
     res = client.get(url_for('media_api.mediaapi'), headers=json_in_out)
     assert "count" in res.json
     assert "media" in res.json
 
 
-def test_media_api_post(json_in_out, client, datadir):
+def test_media_api_post(api_login, json_in_out, client, datadir):
     image_path = os.path.join(datadir, "images/image1.jpg")
     image_ref = "TESTDATA:" + image_path.split("/")[-1]
     res = client.post(url_for('media_api.mediaapi'), data=json.dumps({
@@ -21,7 +21,17 @@ def test_media_api_post(json_in_out, client, datadir):
     assert res.json.get("file_reference") == image_ref
 
 
-def test_media_api_post_get(json_in_out, client, datadir):
+def test_media_api_post_nologin(json_in_out, client, datadir):
+    image_path = os.path.join(datadir, "images/image1.jpg")
+    image_ref = "TESTDATA:" + image_path.split("/")[-1]
+    res = client.post(url_for('media_api.mediaapi'), data=json.dumps({
+        "path": image_path,
+        "file_reference": "TESTDATA:" + image_path.split("/")[-1]
+    }), headers=json_in_out)
+    assert res.status_code == 401
+
+
+def test_media_api_post_get(api_login, json_in_out, client, datadir):
     image_path = os.path.join(datadir, "images/image1.jpg")
     image_ref = "TESTDATA:" + image_path.split("/")[-1]
     res = client.post(url_for('media_api.mediaapi'), data=json.dumps({

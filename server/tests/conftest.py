@@ -1,5 +1,8 @@
 import pytest
 import os
+import json
+
+from flask import url_for
 
 
 @pytest.fixture
@@ -31,3 +34,16 @@ def app(request):
     flask_app.debug = True
 
     return flask_app
+
+
+def do_login(client, json_in_out):
+    res = client.post(url_for('appuser_api.appuserapi'), data=json.dumps({
+        "user_uuid": "beefbeef-beef-beef-beef-beefbeefbeef",
+        "auth_key": "1ff708ecbeca259d8bc852798022cf1cec7bc71d"
+    }), headers=json_in_out)
+    return res
+
+
+@pytest.fixture
+def api_login(client, json_in_out):
+    return do_login(client, json_in_out)

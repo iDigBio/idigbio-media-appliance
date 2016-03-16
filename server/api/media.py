@@ -1,10 +1,18 @@
 import os
 
-from flask import Blueprint, request
+from flask import Blueprint, request, g, jsonify
 from flask_restful import Api, Resource
 from models import Media
 
 media_api = Api(Blueprint("media_api", __name__))
+
+
+def format_status_date(media):
+    status_date = None
+    if media.status_date is not None:
+        status_date = media.status_date.isoformat()
+
+    return status_date
 
 
 @media_api.resource("/media")
@@ -12,10 +20,6 @@ class MediaAPI(Resource):
 
     @staticmethod
     def get():
-        status_date = None
-        if media.status_date is not None:
-            status_date = media.status_date.isoformat()
-
         return {
             "count": Media.query.count(),
             "media": [
@@ -27,7 +31,7 @@ class MediaAPI(Resource):
                     "file_reference": media.file_reference,
                     "image_hash": media.image_hash,
                     "status": media.status,
-                    "status_date": status_date,
+                    "status_date": format_status_date(media),
                     "status_detail": media.status_detail
                 } for media in Media.query[:100]
             ]
@@ -37,13 +41,17 @@ class MediaAPI(Resource):
     def post():
         from app import db
 
-        print(request.headers)
+        if g.appuser is None:
+            j = jsonify({"error": "Not Authorized"})
+            j.status_code = 401
+            return j
 
         b = request.get_json()
 
         media = Media()
         media.path = os.path.abspath(b["path"])
         media.file_reference = b["file_reference"]
+        media.appuser = g.appuser
 
         if "media_type" in b:
             media.media_type = b["media_type"]
@@ -57,10 +65,6 @@ class MediaAPI(Resource):
         db.session.add(media)
         db.session.commit()
 
-        status_date = None
-        if media.status_date is not None:
-            status_date = media.status_date.isoformat()
-
         return {
             "id": media.id,
             "path": media.path,
@@ -69,7 +73,7 @@ class MediaAPI(Resource):
             "file_reference": media.file_reference,
             "image_hash": media.image_hash,
             "status": media.status,
-            "status_date": status_date
+            "status_date": format_status_date(media),
             "status_detail": media.status_detail
         }
 
@@ -83,10 +87,6 @@ class MediaItemAPI(Resource):
 
         media = Media.query.get_or_404(media_id)
 
-        status_date = None
-        if media.status_date is not None:
-            status_date = media.status_date.isoformat()
-
         return {
             "id": media.id,
             "path": media.path,
@@ -95,7 +95,7 @@ class MediaItemAPI(Resource):
             "file_reference": media.file_reference,
             "image_hash": media.image_hash,
             "status": media.status,
-            "status_date": status_date
+            "status_date": format_status_date(media),
             "status_detail": media.status_detail
         }
 

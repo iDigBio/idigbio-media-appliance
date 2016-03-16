@@ -21,8 +21,8 @@ def do_run_db():
     last_i = 0
     pm_no_update = partial(process_media, update_db=False)
     media_query = db.session.query(Media).filter(
-        db.or_(Media.status == None, Media.status != "uploaded")  # noqa
-    for i, m in enumerate(p.imap_unordered(pm_no_update, media_query))):
+        db.or_(Media.status == None, Media.status != "uploaded"))  # noqa
+    for i, m in enumerate(p.imap_unordered(pm_no_update, media_query)):
         last_i = i + 1
         db.session.add(m)
         if i % 1000 == 0:

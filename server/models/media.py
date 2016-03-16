@@ -19,4 +19,4 @@ class Media(db.Model):
     status_detail = db.Column(db.Text)
     appuser_id = db.Column(db.Integer, db.ForeignKey(
         'appuser.id'), nullable=False)
-    appuser = db.relationship("AppUser")
+    appuser = db.relationship("AppUser", backref="media")
