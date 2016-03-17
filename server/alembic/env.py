@@ -1,8 +1,15 @@
 from __future__ import with_statement
+import os
+import sys
+
 from alembic import context
 from sqlalchemy import create_engine, pool
 from logging.config import fileConfig
-from config import SQLALCHEMY_DATABASE_URI
+
+# add server root path to system path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import SQLALCHEMY_DATABASE_URI  # noqa
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
