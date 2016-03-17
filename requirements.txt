@@ -1,6 +1,7 @@
 Flask
 Flask-RESTful
 Flask-SQLAlchemy
+alembic
 gevent
 idigbio
 easygui
