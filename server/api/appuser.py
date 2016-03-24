@@ -15,12 +15,18 @@ def filter_config(b):
             del b[k]
 
 
+def get_current_user():
+    from app import db
+
+    return db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
+            AppUser.login_date.desc()).first()
+
+
 @appuser_api.blueprint.before_app_request
 def set_current_user():
     from app import db
 
-    g.appuser = db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
-            AppUser.login_date.desc()).first()
+    g.appuser = get_current_user()
 
 
 @appuser_api.resource("/appuser")

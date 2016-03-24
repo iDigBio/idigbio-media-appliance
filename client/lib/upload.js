@@ -12,7 +12,7 @@ module.exports = React.createClass({
             <div className="tab-pane container" id="upload-tab">
                 <div className="row">
                     <div className="col-md-12">&nbsp;</div>
-                </div>              
+                </div>
                 <form id='csv-upload-form' className="form-horizontal">
                     <div className="form-group">
                         <label className="col-md-3 control-label">Image <a href="http://creativecommons.org/licenses/" target="_blank">License</a> *</label>
@@ -36,7 +36,7 @@ module.exports = React.createClass({
                                 <div className="input-group-addon" onClick={this.addonClick}>Choose File</div>
                                 <input type="text" data-provide="typeahead" className="form-control"
                                     id="csv_path" placeholder="This should be the full path including the CSV file name."
-                                    rel="tooltip" name="csv-path" data-title='e.g. /Users/you/collection.csv' 
+                                    rel="tooltip" name="csv-path" data-title='e.g. /Users/you/collection.csv'
                                     value={document.config.csv_path} onChange={document.formPropChange} onClick={document.getFile}/>
                             </div>
                         </div>
@@ -67,6 +67,6 @@ module.exports = React.createClass({
                     </div>
                 </form>
             </div>
-        )   
+        )
     }
 });

@@ -29,7 +29,7 @@ module.exports = React.createClass({
         var tabs = [["generate", "Generate CSV"], ["upload","Upload Via CSV"] , ["history", "Upload History"]].map(function(a){
             var n = a[0];
             var l = a[1];
-            return <TabNavItem key={n} name={n} clicky={self.activateTab} label={l} active={self.props.active == n} /> 
+            return <TabNavItem key={n} name={n} clicky={self.activateTab} label={l} active={self.props.active == n} />
         })
         if (this.props.active == "upload") {
             activeTab = <UploadUI />
@@ -48,6 +48,6 @@ module.exports = React.createClass({
 
                 {activeTab}
             </div>
-        )   
+        )
     }
 });

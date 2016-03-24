@@ -19,7 +19,7 @@ document.setConfig = function(c) {
     document.render();
     $.ajax({
         type: "POST",
-        url: "/api/user",
+        url: "/api/appuser",
         data: JSON.stringify(c),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -45,10 +45,10 @@ document.getDir = function(e){
         data: JSON.stringify({"dirname": dir}),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function(data){            
+        success: function(data){
             if (data.path !== null) {
                 tar.val(data.path);
-                document.formPropChange({"target": tar});                
+                document.formPropChange({"target": tar});
             }
         },
         failure: function(errMsg) {
@@ -69,7 +69,7 @@ document.getFile = function(e){
         data: JSON.stringify({"filename": f}),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function(data){            
+        success: function(data){
             if (data.path !== null && data.path != ".") {
                 tar.val(data.path);
                 document.formPropChange({"target": tar});
@@ -94,21 +94,69 @@ document.formPropChange = function(e) {
     document.setConfig(document.config);
 }
 
+document.runningTasks = {};
+
+document.pollTask = function(taskID) {
+    $.ajax({
+        type: "GET",
+        url: "/api/readdir/" + taskID,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){
+            console.log(data);
+            if (data.status == "RUNNING") {
+                setTimeout(function(){
+                    document.pollTask(taskID);
+                }, 5000)
+            } else if (data.status == "DONE") {
+                if (data.filename !== undefined) {
+                    document.messages.push({
+                        "level": "info",
+                        "text": "CSV Generation from done.",
+                        "taskID": taskID,
+                        "ts": Date()
+                    });
+                    window.location = "/api/getfile/" + data.filename
+                }
+            }
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    });
+}
+
+document.listMedia = function(params, cb) {
+    $.ajax({
+        type: "GET",
+        url: "/api/media",
+        data: params,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){
+            cb(data);
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    });
+}
+
 document.render = function(){
         ReactDOM.render(
             React.createElement(MainUI, {active: document.active}),
-            document.querySelector("#main")            
+            document.querySelector("#main")
         );
 
         ReactDOM.render(
             React.createElement(WarningIndicator, null),
             document.querySelector("#warningindicator")
-        );         
+        );
 
         ReactDOM.render(
             React.createElement(UserIndicator, null),
             document.querySelector("#userindicator")
-        ); 
+        );
 
 }
 
@@ -119,11 +167,11 @@ $("#login-button").click(function(){
     }
 
     document.setConfig(d)
-    $('#loginModal').modal('hide');    
+    $('#loginModal').modal('hide');
 });
 
 
-$.get('/api/user', function(data){
+$.get('/api/appuser', function(data){
     document.config = data;
     document.render()
 }).fail(function(errMsg){
@@ -151,36 +199,69 @@ module.exports = React.createClass({displayName: "exports",
         var tar = $(e.target);
         tar.next().click();
     },
-    generateCSV: function(e, react_id, raw_event, norender){
+    generateCSV: function(e){
         e.preventDefault();
-        var path = "media.csv"
-        if (document.config.csv_path) {
-            path = document.config.csv_path
+
+        var tar = $(e.target);
+
+        if (tar.is("span")) {
+            tar = $(tar.parent());
         }
-        console.log("Generate");
-        document.active = "upload";
-        document.messages.push({
-            "level": "info",
-            "text": "CSV Generation to " + path + "started.",
-            "ts": Date()
+
+        var upload = tar.attr("id") == "csv-generate-upload-button";
+
+        var d = {
+            "upload": upload
+        };
+        var f = ["upload_path", "guid_prefix","guid_syntax"];
+        $(f).each(function(i, k){
+            if(document.config[k]) {
+                d[k] = document.config[k];
+            }
+        })
+
+        $.ajax({
+            type: "POST",
+            url: "/api/readdir",
+            data: JSON.stringify(d),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                if (upload) {
+                    document.active = "history";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "Upload Started",
+                        "ts": Date()
+                    });
+                } else {
+                    document.pollTask(data.task_id);
+
+                    document.active = "upload";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "CSV Generation from " + document.config.upload_path + "started.",
+                        "taskID": data.task_id,
+                        "ts": Date()
+                    });
+                }
+
+                document.render();
+            },
+            error: function(errMsg) {
+                // Warning message on config failure?
+                document.save_failure = true;
+                document.messages.push({
+                    "level": "error",
+                    "text": "CSV Generation failed.",
+                    "error": errMsg,
+                    "ts": Date()
+                });
+
+                document.render();
+            }
         });
-        console.log(norender)
-        if (norender === undefined) {
-            document.render();
-        }
-        return false;
-    },
-    generateCSVUpload: function(e, react_id, raw_event){
-        e.preventDefault();
-        this.generateCSV(e, react_id, raw_event, true);
-        console.log("Upload");
-        document.active = "history";
-        document.messages.push({
-            "level": "info",
-            "text": "Upload Started",
-            "ts": Date()
-        });
-        document.render();
+
         return false;
     },
     render: function(){
@@ -233,19 +314,6 @@ module.exports = React.createClass({displayName: "exports",
                     ), 
 
                     React.createElement("div", {className: "form-group"}, 
-                        React.createElement("label", {className: "col-md-3 control-label"}, "CSV Save Location"), 
-                        React.createElement("div", {className: "col-md-9"}, 
-                            React.createElement("div", {className: "input-group"}, 
-                                React.createElement("div", {className: "input-group-addon", onClick: this.addonClick}, "Choose File"), 
-                                React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
-                                    id: "csv_path", name: "csv_path", placeholder: "If left blank, the file will be saved to the image directory.", 
-                                    rel: "tooltip", "data-title": "The directory path that you want to save your CSV file.", onClick: document.getFile, 
-                                    value: document.config.csv_path, onChange: document.formPropChange})
-                            )
-                        )
-                    ), 
-
-                    React.createElement("div", {className: "form-group"}, 
                         React.createElement("label", {className: "col-md-3 control-label"}), 
                         React.createElement("div", {className: "col-md-9"}, 
                             "Note: Fields with * are mandatory."
@@ -255,21 +323,19 @@ module.exports = React.createClass({displayName: "exports",
                     React.createElement("div", {className: "form-group"}, 
                         React.createElement("div", {className: "col-md-offset-3 col-md-4"}, 
                             React.createElement("button", {id: "csv-generate-button", className: "btn btn-success btn-block", onClick: this.generateCSV}, 
-                                React.createElement("i", {className: "icon-file icon-white"}), 
-                                React.createElement("span", null, "Generate CSV")
+                                React.createElement("i", {className: "glyphicon-file glyphicon"}), " Generate CSV"
                             )
                         ), 
                         React.createElement("div", {className: "col-md-4"}, 
-                            React.createElement("button", {id: "csv-generate-upload-button", className: "btn btn-primary btn-block", onClick: this.generateCSVUpload}, 
-                                React.createElement("i", {className: "icon-file icon-white"}), 
-                                React.createElement("span", null, "Generate CSV & Upload Files")
+                            React.createElement("button", {id: "csv-generate-upload-button", className: "btn btn-primary btn-block", onClick: this.generateCSV}, 
+                                React.createElement("i", {className: "glyphicon-upload glyphicon"}), " Generate CSV & Upload Files"
                             )
                         )
                     )
 
                 )
             )
-        )   
+        )
     }
 });
 
@@ -277,12 +343,218 @@ module.exports = React.createClass({displayName: "exports",
 var React = require("react");
 
 module.exports = React.createClass({displayName: "exports",
+    getInitialState: function(){
+        return {
+            "status": {},
+            "items": [],
+            "upload": {},
+            "timeouts": {},
+            "doUpload": false,
+            "limit": 10,
+            "offset": 0,
+        };
+    },
+    componentWillMount: function(){
+        var self = this;
+
+        document.listMedia({"limit": this.state.limit, "offset": this.state.offset}, function(data){
+            self.setState({"items": data.media})
+        });
+        this.updateState();
+        this.checkUpload();
+    },
+    goToPage: function(e) {
+        var self = this;
+        var tar = $(e.target);
+
+        if (tar.is("span")) {
+            tar = $(tar.parent());
+        }
+
+        var page = tar.attr("data-page");
+        var offset = (page - 1) * this.state.limit;
+
+        document.listMedia({"limit": this.state.limit, "offset": offset}, function(data){
+            self.setState({"items": data.media, "offset": offset})
+        });
+    },
+    componentWillUnmount: function(){
+        $.each(this.state.timeouts,function(k, v){
+            clearTimeout(v);
+        })
+    },
+    updateState: function() {
+        var self = this;
+
+        $.ajax({
+            type: "GET",
+            url: "/api/media/status",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                console.log(data);
+                var s = {}
+                self.state.timeouts["status"] = setTimeout(self.updateState, 5000);
+                s.status = data;
+                self.setState(s);
+            },
+            failure: function(errMsg) {
+                console.log(errMsg);
+            }
+        });
+    },
+    checkUpload: function(e){
+        var self = this;
+        $.ajax({
+            type: "GET",
+            url: "/api/process",
+            data: {"start": self.state.doUpload},
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                self.setState({"upload": data, "doUpload": false})
+                if (self.state.upload.status == "STARTED" || self.state.upload.status == "RUNNING") {
+                    self.state.timeouts["check"] = setTimeout(function(){
+                        self.checkUpload();
+                    }, 5000);
+                }
+            },
+            failure: function(errMsg) {
+                console.log(errMsg);
+            }
+        });
+    },
+    startUpload: function(e){
+        this.setState({"doUpload": true}, function(){
+            this.checkUpload(e);
+        })
+    },
     render: function(){
-        return (
-            React.createElement("div", null, 
-                "\"History\""
+        var mediaItems = $.map(this.state.items,function(item){
+            return (
+                React.createElement("tr", {key: item.file_reference}, 
+                    React.createElement("td", null, item.path), 
+                    React.createElement("td", null, item.file_reference), 
+                    React.createElement("td", null, item.status)
+                )
             )
-        )   
+        });
+
+        var pagerItems = [];
+        var currentPage = (this.state.offset / this.state.limit) + 1;
+
+        var minPage = Math.max(currentPage-5, 1);
+        var maxPage = Math.max(currentPage+5, 10);
+
+        pagerItems.push(
+            React.createElement("li", null, 
+              React.createElement("a", {href: "#", "aria-label": "Previous", onClick: this.goToPage, "data-page": Math.max(currentPage-1,1)}, 
+                React.createElement("span", {"aria-hidden": "true"}, "«")
+              )
+            )
+        );
+
+        for (var i = minPage; i < maxPage+1; i++) {
+            if (i == currentPage) {
+                pagerItems.push(React.createElement("li", {className: "active"}, React.createElement("a", {href: "#", "data-page": i, onClick: this.goToPage}, i)))
+            } else {
+                pagerItems.push(React.createElement("li", null, React.createElement("a", {href: "#", "data-page": i, onClick: this.goToPage}, i)))
+            }
+        }
+
+        pagerItems.push(
+            React.createElement("li", null, 
+              React.createElement("a", {href: "#", "aria-label": "Next", onClick: this.goToPage, "data-page": Math.min(currentPage+1,Math.floor((this.state.status.count || 0) / this.state.limit))}, 
+                React.createElement("span", {"aria-hidden": "true"}, "»")
+              )
+            )
+        );
+
+        var button;
+        var infoActive = "";
+        if (this.state.upload.status == "STARTED" || this.state.upload.status == "RUNNING") {
+            button = (React.createElement("button", {className: "btn disabled"}, "Upload Task Running"))
+            infoActive = " progress-bar-striped active";
+        } else {
+            button = (React.createElement("button", {className: "btn btn-primary", onClick: this.startUpload}, "Restart Upload Task"));
+        }
+
+        var percents = {
+            "success": ((this.state.status.uploaded || 0) / (this.state.status.count || 1)) * 100,
+            "info": (((this.state.status.pending || 0) + (this.state.status.file_changed || 0)) / (this.state.status.count || 1)) * 100,
+            "warning": ((this.state.status.missing || 0) / (this.state.status.count || 1)) * 100,
+            "error": ((this.state.status.failed || 0) / (this.state.status.count || 1)) * 100
+        }
+
+        console.log(percents);
+
+
+
+        return (
+            React.createElement("div", {className: "row"}, 
+                React.createElement("h3", null, "Media Status"), 
+                React.createElement("div", {className: "col-md-3"}, 
+                    React.createElement("h4", null, "Total Media Added: ", React.createElement("span", {className: "badge"}, this.state.status.count || "0")), 
+                    React.createElement("div", {className: "progress"}, 
+                      React.createElement("div", {className: "progress-bar progress-bar-success" + infoActive, style: {"width": percents.success + "%"}}, 
+                        React.createElement("span", {className: "sr-only"}, "percents.success + \"%\" Complete (success)")
+                      ), 
+                      React.createElement("div", {className: "progress-bar progress-bar-info" + infoActive, style: {"width": percents.info + "%"}}, 
+                        React.createElement("span", {className: "sr-only"}, "percents.info + \"%\" Complete (warning)")
+                      ), 
+                      React.createElement("div", {className: "progress-bar progress-bar-warning" + infoActive, style: {"width": percents.warning + "%"}}, 
+                        React.createElement("span", {className: "sr-only"}, "percents.warning + \"%\" Complete (warning)")
+                      ), 
+                      React.createElement("div", {className: "progress-bar progress-bar-danger" + infoActive, style: {"width": percents.error + "%"}}, 
+                        React.createElement("span", {className: "sr-only"}, "percents.error + \"%\" Complete (danger)")
+                      )
+                    ), 
+                    React.createElement("ul", {className: "list-group"}, 
+                        React.createElement("li", {className: "list-group-item list-group-item-success"}, 
+                            "Uploaded ", React.createElement("span", {className: "badge"}, this.state.status.uploaded || "0")
+                        ), 
+                        React.createElement("li", {className: "list-group-item list-group-item-info"}, 
+                            "Pending ", React.createElement("span", {className: "badge"}, this.state.status.pending || "0")
+                        ), 
+                        React.createElement("li", {className: "list-group-item list-group-item-info"}, 
+                            "File Changed ", React.createElement("span", {className: "badge"}, this.state.status.file_changed || "0")
+                        ), 
+                        React.createElement("li", {className: "list-group-item list-group-item-warning"}, 
+                            "Missing ", React.createElement("span", {className: "badge"}, this.state.status.missing || "0")
+                        ), 
+                        React.createElement("li", {className: "list-group-item list-group-item-danger"}, 
+                            "Failed ", React.createElement("span", {className: "badge"}, this.state.status.failed || "0")
+                        )
+                    ), 
+                    button
+                ), 
+                React.createElement("div", {className: "col-md-9 text-center"}, 
+                    React.createElement("nav", null, 
+                      React.createElement("ul", {className: "pagination", style: {"margin": "0px"}}, 
+                        pagerItems
+                      )
+                    ), 
+                    React.createElement("table", {className: "table table-striped text-left"}, 
+                        React.createElement("thead", null, 
+                            React.createElement("tr", null, 
+                                React.createElement("th", null, 
+                                    "Media Path"
+                                ), 
+                                React.createElement("th", null, 
+                                    "GUID"
+                                ), 
+                                React.createElement("th", null, 
+                                    "Status"
+                                )
+                            )
+                        ), 
+                        React.createElement("tbody", null, 
+                            mediaItems
+                        )
+                    )
+                )
+            )
+        )
     }
 });
 
@@ -318,7 +590,7 @@ module.exports = React.createClass({displayName: "exports",
         var tabs = [["generate", "Generate CSV"], ["upload","Upload Via CSV"] , ["history", "Upload History"]].map(function(a){
             var n = a[0];
             var l = a[1];
-            return React.createElement(TabNavItem, {key: n, name: n, clicky: self.activateTab, label: l, active: self.props.active == n}) 
+            return React.createElement(TabNavItem, {key: n, name: n, clicky: self.activateTab, label: l, active: self.props.active == n})
         })
         if (this.props.active == "upload") {
             activeTab = React.createElement(UploadUI, null)
@@ -337,7 +609,7 @@ module.exports = React.createClass({displayName: "exports",
 
                 activeTab
             )
-        )   
+        )
     }
 });
 
@@ -411,7 +683,7 @@ module.exports = React.createClass({displayName: "exports",
                     )
                 )
             )
-        )   
+        )
     }
 });
 
@@ -429,7 +701,7 @@ module.exports = React.createClass({displayName: "exports",
         var self=this;
         $.ajax({
             type: "DELETE",
-            url: "/api/user",        
+            url: "/api/appuser",
             success: function(){
                 document.config = {};
 

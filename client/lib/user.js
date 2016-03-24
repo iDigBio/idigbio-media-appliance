@@ -11,7 +11,7 @@ module.exports = React.createClass({
         var self=this;
         $.ajax({
             type: "DELETE",
-            url: "/api/user",        
+            url: "/api/appuser",
             success: function(){
                 document.config = {};
 

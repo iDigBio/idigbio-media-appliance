@@ -16,36 +16,69 @@ module.exports = React.createClass({
         var tar = $(e.target);
         tar.next().click();
     },
-    generateCSV: function(e, react_id, raw_event, norender){
+    generateCSV: function(e){
         e.preventDefault();
-        var path = "media.csv"
-        if (document.config.csv_path) {
-            path = document.config.csv_path
+
+        var tar = $(e.target);
+
+        if (tar.is("span")) {
+            tar = $(tar.parent());
         }
-        console.log("Generate");
-        document.active = "upload";
-        document.messages.push({
-            "level": "info",
-            "text": "CSV Generation to " + path + "started.",
-            "ts": Date()
+
+        var upload = tar.attr("id") == "csv-generate-upload-button";
+
+        var d = {
+            "upload": upload
+        };
+        var f = ["upload_path", "guid_prefix","guid_syntax"];
+        $(f).each(function(i, k){
+            if(document.config[k]) {
+                d[k] = document.config[k];
+            }
+        })
+
+        $.ajax({
+            type: "POST",
+            url: "/api/readdir",
+            data: JSON.stringify(d),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                if (upload) {
+                    document.active = "history";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "Upload Started",
+                        "ts": Date()
+                    });
+                } else {
+                    document.pollTask(data.task_id);
+
+                    document.active = "upload";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "CSV Generation from " + document.config.upload_path + "started.",
+                        "taskID": data.task_id,
+                        "ts": Date()
+                    });
+                }
+
+                document.render();
+            },
+            error: function(errMsg) {
+                // Warning message on config failure?
+                document.save_failure = true;
+                document.messages.push({
+                    "level": "error",
+                    "text": "CSV Generation failed.",
+                    "error": errMsg,
+                    "ts": Date()
+                });
+
+                document.render();
+            }
         });
-        console.log(norender)
-        if (norender === undefined) {
-            document.render();
-        }
-        return false;
-    },
-    generateCSVUpload: function(e, react_id, raw_event){
-        e.preventDefault();
-        this.generateCSV(e, react_id, raw_event, true);
-        console.log("Upload");
-        document.active = "history";
-        document.messages.push({
-            "level": "info",
-            "text": "Upload Started",
-            "ts": Date()
-        });
-        document.render();
+
         return false;
     },
     render: function(){
@@ -53,7 +86,7 @@ module.exports = React.createClass({
             <div className="tab-pane container" id="generator-tab">
                 <div className="row">
                     <div className="col-md-12">&nbsp;</div>
-                </div>                
+                </div>
                 <form id="csv-generation-form" className="form-horizontal">
                     <div className="form-group">
                         <label className="col-md-3 control-label">Upload Path *</label>
@@ -92,21 +125,8 @@ module.exports = React.createClass({
                         <div className="col-md-9">
                             <input type="text" data-provide="typeahead" className="form-control"
                                 id="guid_prefix" name="guid_prefix" placeholder="Optional"
-                                rel="tooltip" data-title="This is the prefix used with the GUID Syntax. e.g. http://ids.flmnh.ufl.edu/herb. GUIDs are contructed by combining the GUID Prefix with either the file name or the full fie path." 
+                                rel="tooltip" data-title="This is the prefix used with the GUID Syntax. e.g. http://ids.flmnh.ufl.edu/herb. GUIDs are contructed by combining the GUID Prefix with either the file name or the full fie path."
                                 value={document.config.guid_prefix} onChange={document.formPropChange} />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="col-md-3 control-label">CSV Save Location</label>
-                        <div className="col-md-9">
-                            <div className="input-group">
-                                <div className="input-group-addon" onClick={this.addonClick}>Choose File</div>
-                                <input type="text" data-provide="typeahead" className="form-control"
-                                    id="csv_path" name="csv_path" placeholder="If left blank, the file will be saved to the image directory."
-                                    rel="tooltip" data-title="The directory path that you want to save your CSV file." onClick={document.getFile} 
-                                    value={document.config.csv_path} onChange={document.formPropChange} />
-                            </div>
                         </div>
                     </div>
 
@@ -120,20 +140,18 @@ module.exports = React.createClass({
                     <div className="form-group">
                         <div className="col-md-offset-3 col-md-4">
                             <button id="csv-generate-button" className="btn btn-success btn-block" onClick={this.generateCSV} >
-                                <i className="icon-file icon-white"></i>
-                                <span>Generate CSV</span>
+                                <i className="glyphicon-file glyphicon"></i> Generate CSV
                             </button>
                         </div>
                         <div className="col-md-4">
-                            <button id="csv-generate-upload-button" className="btn btn-primary btn-block" onClick={this.generateCSVUpload} >
-                                <i className="icon-file icon-white"></i>
-                                <span>Generate CSV & Upload Files</span>
-                            </button>                        
+                            <button id="csv-generate-upload-button" className="btn btn-primary btn-block" onClick={this.generateCSV} >
+                                <i className="glyphicon-upload glyphicon"></i> Generate CSV & Upload Files
+                            </button>
                         </div>
                     </div>
 
                 </form>
             </div>
-        )   
+        )
     }
 });

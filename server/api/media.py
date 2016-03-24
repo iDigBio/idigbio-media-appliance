@@ -20,6 +20,14 @@ class MediaAPI(Resource):
 
     @staticmethod
     def get():
+        try:
+            o = int(request.args.get('offset', 0))
+            l = int(request.args.get('limit', 100))
+        except:
+            res = jsonify({"error": "Limit and offset must be integers"})
+            res.status_code = 400
+            return res
+
         return {
             "count": Media.query.count(),
             "media": [
@@ -33,7 +41,7 @@ class MediaAPI(Resource):
                     "status": media.status,
                     "status_date": format_status_date(media),
                     "status_detail": media.status_detail
-                } for media in Media.query[:100]
+                } for media in Media.query[o:o+l]
             ]
         }
 
@@ -107,7 +115,7 @@ class MediaStatusAPI(Resource):
     def get():
         from app import db
 
-        statuses = db.session.query(db.func.count(Media.status).label(
+        statuses = db.session.query(db.func.count('*').label(
             "c"), Media.status).group_by(Media.status).all()
 
         resp_d = {
@@ -116,7 +124,7 @@ class MediaStatusAPI(Resource):
 
         for m in statuses:
             if m.status is None:
-                resp_d["NULL"] = m.c
+                resp_d["pending"] = m.c
             else:
                 resp_d[m.status] = m.c
 

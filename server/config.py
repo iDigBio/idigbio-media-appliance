@@ -2,12 +2,12 @@ import os
 import appdirs
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-user_data = appdirs.user_data_dir("media_appliance", "idigbio")
+USER_DATA = appdirs.user_data_dir("media_appliance", "idigbio")
 
-if not os.path.exists(user_data):
-    os.mkdirs(user_data)
+if not os.path.exists(USER_DATA):
+    os.mkdirs(USER_DATA)
 
-DATABASE_FILE = os.path.join(user_data, "local.db")
+DATABASE_FILE = os.path.join(USER_DATA, "local.db")
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_DATABASE_URI = "sqlite:///{}".format(DATABASE_FILE)

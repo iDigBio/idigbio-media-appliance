@@ -3,8 +3,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask
 import logging
 
-from gevent import monkey
-monkey.patch_all()
+# from gevent import monkey
+# monkey.patch_all()
 
 logging.root.setLevel(logging.DEBUG)
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -36,6 +36,7 @@ if __name__ == '__main__':
     init_routes()
     create_or_update_db()
     if dbg:
+        # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
         app.run(debug=True)
     else:
         app.run()

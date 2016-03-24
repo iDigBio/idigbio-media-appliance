@@ -18,7 +18,7 @@ document.setConfig = function(c) {
     document.render();
     $.ajax({
         type: "POST",
-        url: "/api/user",
+        url: "/api/appuser",
         data: JSON.stringify(c),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -44,10 +44,10 @@ document.getDir = function(e){
         data: JSON.stringify({"dirname": dir}),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function(data){            
+        success: function(data){
             if (data.path !== null) {
                 tar.val(data.path);
-                document.formPropChange({"target": tar});                
+                document.formPropChange({"target": tar});
             }
         },
         failure: function(errMsg) {
@@ -68,7 +68,7 @@ document.getFile = function(e){
         data: JSON.stringify({"filename": f}),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function(data){            
+        success: function(data){
             if (data.path !== null && data.path != ".") {
                 tar.val(data.path);
                 document.formPropChange({"target": tar});
@@ -93,21 +93,69 @@ document.formPropChange = function(e) {
     document.setConfig(document.config);
 }
 
+document.runningTasks = {};
+
+document.pollTask = function(taskID) {
+    $.ajax({
+        type: "GET",
+        url: "/api/readdir/" + taskID,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){
+            console.log(data);
+            if (data.status == "RUNNING") {
+                setTimeout(function(){
+                    document.pollTask(taskID);
+                }, 5000)
+            } else if (data.status == "DONE") {
+                if (data.filename !== undefined) {
+                    document.messages.push({
+                        "level": "info",
+                        "text": "CSV Generation from done.",
+                        "taskID": taskID,
+                        "ts": Date()
+                    });
+                    window.location = "/api/getfile/" + data.filename
+                }
+            }
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    });
+}
+
+document.listMedia = function(params, cb) {
+    $.ajax({
+        type: "GET",
+        url: "/api/media",
+        data: params,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){
+            cb(data);
+        },
+        failure: function(errMsg) {
+            console.log(errMsg);
+        }
+    });
+}
+
 document.render = function(){
         ReactDOM.render(
             <MainUI active={document.active}/>,
-            document.querySelector("#main")            
+            document.querySelector("#main")
         );
 
         ReactDOM.render(
             <WarningIndicator />,
             document.querySelector("#warningindicator")
-        );         
+        );
 
         ReactDOM.render(
             <UserIndicator />,
             document.querySelector("#userindicator")
-        ); 
+        );
 
 }
 
@@ -118,11 +166,11 @@ $("#login-button").click(function(){
     }
 
     document.setConfig(d)
-    $('#loginModal').modal('hide');    
+    $('#loginModal').modal('hide');
 });
 
 
-$.get('/api/user', function(data){
+$.get('/api/appuser', function(data){
     document.config = data;
     document.render()
 }).fail(function(errMsg){
