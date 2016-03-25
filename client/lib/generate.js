@@ -34,6 +34,8 @@ module.exports = React.createClass({
         $(f).each(function(i, k){
             if(document.config[k]) {
                 d[k] = document.config[k];
+            } else {
+                d[k] = $("#" + k).val()
             }
         })
 
@@ -112,8 +114,8 @@ module.exports = React.createClass({
                         <label className="col-md-3 control-label"><a href="https://www.idigbio.org/sites/default/files/iDigBioGuidGuideForProviders_v1.pdf" target="_blank">GUID</a> Syntax *</label>
                         <div className="col-md-9">
                             <select id="guid_syntax" name="guid_syntax" className="form-control" value={document.config.guid_syntax} onChange={this.guidSyntaxChange} placeholder="Put in the directory path containing all your images." rel="tooltip" data-title="GUID can be constructed by hashing from media record, or contructed by combining the GUID Prefix with either the file name or the full fie path.">
-                                <option value="image_hash" >GUID = hash of image contents</option>
-                                <option value="hash" >GUID = hash of record information</option>
+                                <option value="uuid" >GUID = randomly generated UUID value</option>
+                                <option value="hash" >GUID = hash of image contents</option>
                                 <option value="filename" >GUID = [GUID Prefix][File Name]</option>
                                 <option value="fullpath" >GUID = [GUID Prefix][Full Path]</option>
                             </select>

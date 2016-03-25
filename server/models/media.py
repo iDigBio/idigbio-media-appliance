@@ -12,6 +12,7 @@ class Media(db.Model):
     mime = db.Column(db.Text)
     path = db.Column(db.Text, nullable=False, unique=True)
     file_reference = db.Column(db.Text, nullable=False)
+    props = db.Column(db.Text, default="{}")
     image_hash = db.Column(db.Text)
     status = db.Column(
         db.Enum(*["uploaded", "failed", "missing", "file_changed"]))

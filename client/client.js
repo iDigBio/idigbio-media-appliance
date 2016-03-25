@@ -3,8 +3,19 @@ var React = require("react");
 var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
 
+var hash = window.location.hash.substring(1);
+
+if (hash == "upload-tab") {
+    document.active = "upload"
+} else if (hash == "history-tab") {
+    document.active = "history"
+} else if (hash == "generate-tab") {
+    document.active = "generate"
+} else {
+    document.active = "upload"    
+}
+
 document.config = {}
-document.active = "upload"
 document.save_failure = false;
 document.messages = [];
 
@@ -41,7 +52,7 @@ document.getDir = function(e){
         type: "GET",
         url: "/api/dirprompt",
         // The key needs to match your method's input parameter (case-sensitive).
-        data: JSON.stringify({"dirname": dir}),
+        data: {"dirname": dir},
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(data){

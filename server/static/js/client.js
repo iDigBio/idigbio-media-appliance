@@ -4,8 +4,19 @@ var React = require("react");
 var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
 
+var hash = window.location.hash.substring(1);
+
+if (hash == "upload-tab") {
+    document.active = "upload"
+} else if (hash == "history-tab") {
+    document.active = "history"
+} else if (hash == "generate-tab") {
+    document.active = "generate"
+} else {
+    document.active = "upload"    
+}
+
 document.config = {}
-document.active = "upload"
 document.save_failure = false;
 document.messages = [];
 
@@ -42,7 +53,7 @@ document.getDir = function(e){
         type: "GET",
         url: "/api/dirprompt",
         // The key needs to match your method's input parameter (case-sensitive).
-        data: JSON.stringify({"dirname": dir}),
+        data: {"dirname": dir},
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(data){
@@ -217,6 +228,8 @@ module.exports = React.createClass({displayName: "exports",
         $(f).each(function(i, k){
             if(document.config[k]) {
                 d[k] = document.config[k];
+            } else {
+                d[k] = $("#" + k).val()
             }
         })
 
@@ -295,8 +308,8 @@ module.exports = React.createClass({displayName: "exports",
                         React.createElement("label", {className: "col-md-3 control-label"}, React.createElement("a", {href: "https://www.idigbio.org/sites/default/files/iDigBioGuidGuideForProviders_v1.pdf", target: "_blank"}, "GUID"), " Syntax *"), 
                         React.createElement("div", {className: "col-md-9"}, 
                             React.createElement("select", {id: "guid_syntax", name: "guid_syntax", className: "form-control", value: document.config.guid_syntax, onChange: this.guidSyntaxChange, placeholder: "Put in the directory path containing all your images.", rel: "tooltip", "data-title": "GUID can be constructed by hashing from media record, or contructed by combining the GUID Prefix with either the file name or the full fie path."}, 
-                                React.createElement("option", {value: "image_hash"}, "GUID = hash of image contents"), 
-                                React.createElement("option", {value: "hash"}, "GUID = hash of record information"), 
+                                React.createElement("option", {value: "uuid"}, "GUID = randomly generated UUID value"), 
+                                React.createElement("option", {value: "hash"}, "GUID = hash of image contents"), 
                                 React.createElement("option", {value: "filename"}, "GUID = [GUID Prefix][File Name]"), 
                                 React.createElement("option", {value: "fullpath"}, "GUID = [GUID Prefix][Full Path]")
                             )
@@ -623,13 +636,74 @@ var React = require("react");
   // "CC BY-NC-SA": ["CC BY-NC-SA", "(Attribution-NonCommercial-ShareAlike)", "http://creativecommons.org/licenses/by-nc-sa/4.0/"]
 
 module.exports = React.createClass({displayName: "exports",
+    uploadCSV: function(e){
+        // e.preventDefault();
+
+        // $("#csv-upload-form").submit();
+/*        var d = {};
+
+        var f = ["license", "csv_path"];
+        $(f).each(function(i, k){
+            if(document.config[k]) {
+                d[k] = document.config[k];
+            } else {
+                d[k] = $("#" + k).val()
+            }
+        })
+
+        console.log(d);
+
+        $.ajax({
+            type: "POST",
+            url: "/api/loadcsv",
+            data: JSON.stringify(d),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                if (upload) {
+                    document.active = "history";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "Upload Started",
+                        "ts": Date()
+                    });
+                } else {
+                    document.pollTask(data.task_id);
+
+                    document.active = "upload";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "CSV Generation from " + document.config.upload_path + "started.",
+                        "taskID": data.task_id,
+                        "ts": Date()
+                    });
+                }
+
+                document.render();
+            },
+            error: function(errMsg) {
+                // Warning message on config failure?
+                document.save_failure = true;
+                document.messages.push({
+                    "level": "error",
+                    "text": "CSV Generation failed.",
+                    "error": errMsg,
+                    "ts": Date()
+                });
+
+                document.render();
+            }
+        });*/
+
+        // return false;
+    },
     render: function(){
         return (
             React.createElement("div", {className: "tab-pane container", id: "upload-tab"}, 
                 React.createElement("div", {className: "row"}, 
                     React.createElement("div", {className: "col-md-12"}, " ")
                 ), 
-                React.createElement("form", {id: "csv-upload-form", className: "form-horizontal"}, 
+                React.createElement("form", {id: "csv-upload-form", className: "form-horizontal", action: "/api/loadcsv", method: "POST", encType: "multipart/form-data"}, 
                     React.createElement("div", {className: "form-group"}, 
                         React.createElement("label", {className: "col-md-3 control-label"}, "Image ", React.createElement("a", {href: "http://creativecommons.org/licenses/", target: "_blank"}, "License"), " *"), 
                         React.createElement("div", {className: "col-md-9"}, 
@@ -648,13 +722,9 @@ module.exports = React.createClass({displayName: "exports",
                     React.createElement("div", {className: "form-group"}, 
                         React.createElement("label", {className: "col-md-3 control-label"}, "CSV File Full Path *"), 
                         React.createElement("div", {className: "col-md-9"}, 
-                            React.createElement("div", {className: "input-group"}, 
-                                React.createElement("div", {className: "input-group-addon", onClick: this.addonClick}, "Choose File"), 
-                                React.createElement("input", {type: "text", "data-provide": "typeahead", className: "form-control", 
-                                    id: "csv_path", placeholder: "This should be the full path including the CSV file name.", 
-                                    rel: "tooltip", name: "csv-path", "data-title": "e.g. /Users/you/collection.csv", 
-                                    value: document.config.csv_path, onChange: document.formPropChange, onClick: document.getFile})
-                            )
+                            React.createElement("input", {type: "file", "data-provide": "typeahead", className: "form-control", 
+                                id: "csv_path", placeholder: "This should be the full path including the CSV file name.", 
+                                rel: "tooltip", name: "csv_path", "data-title": "e.g. /Users/you/collection.csv"})
                         )
                     ), 
 
@@ -669,15 +739,13 @@ module.exports = React.createClass({displayName: "exports",
 
                         React.createElement("div", {className: "span3"}, 
                             React.createElement("button", {id: "csv-upload-button", type: "submit", className: "btn btn-primary btn-block"}, 
-                                React.createElement("i", {className: "icon-upload icon-white"}), 
-                                React.createElement("span", null, "Upload")
+                                React.createElement("i", {className: "glyphicon-upload glyphicon"}), " Upload"
                             )
                         ), 
 
                         React.createElement("div", {className: ""}, 
                             React.createElement("a", {href: "#CSVFileFormatModal", id: "csv-file-format-button", role: "button", className: "btn btn-inverse btn-block", "data-toggle": "modal"}, 
-                                React.createElement("i", {className: "icon-list-alt icon-white"}), 
-                                React.createElement("span", null, "CSV file format")
+                                React.createElement("i", {className: "glyphicon-list-alt glyphicon"}), " CSV file format"
                             )
                         )
                     )

@@ -13,6 +13,20 @@ file_types = {
 }
 
 
+def check_update(m, p, current_user, guid_type=None):
+    h = calcFileHash(p)
+    if m.image_hash == h:
+        return m
+    m.status = "file_changed"
+    m.status_date = datetime.datetime.now()
+    m.status_detail = m.image_hash
+    m.image_hash = h
+    m.appuser = current_user
+    if guid_type == "hash":
+        m.file_reference = h
+    return m
+
+
 def calcFileHash(f, op=True, return_size=False, read_size=2048):
     def do_hash(fd):
         md5 = hashlib.md5()

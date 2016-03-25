@@ -1,4 +1,5 @@
 import os
+import json
 
 from flask import Blueprint, request, g, jsonify
 from flask_restful import Api, Resource
@@ -37,6 +38,7 @@ class MediaAPI(Resource):
                     "media_type": media.media_type,
                     "mime": media.mime,
                     "file_reference": media.file_reference,
+                    "props": json.loads(media.props),
                     "image_hash": media.image_hash,
                     "status": media.status,
                     "status_date": format_status_date(media),
@@ -79,6 +81,7 @@ class MediaAPI(Resource):
             "media_type": media.media_type,
             "mime": media.mime,
             "file_reference": media.file_reference,
+            "props": json.loads(media.props),
             "image_hash": media.image_hash,
             "status": media.status,
             "status_date": format_status_date(media),
@@ -101,6 +104,7 @@ class MediaItemAPI(Resource):
             "media_type": media.media_type,
             "mime": media.mime,
             "file_reference": media.file_reference,
+            "props": json.loads(media.props),
             "image_hash": media.image_hash,
             "status": media.status,
             "status_date": format_status_date(media),

@@ -1,4 +1,5 @@
 import sys
+import os
 
 import multiprocessing
 
@@ -8,9 +9,9 @@ import uuid
 
 from models import Media, Batch
 
-from flask import Blueprint, request, current_app, jsonify, send_from_directory
+from flask import Blueprint, request, current_app, jsonify, send_from_directory, redirect  # noqa
 
-from lib.workwork import do_run_db, do_create_media, combined
+from lib.workwork import do_run_db, do_create_media, combined_load
 
 
 service_api = Blueprint("service_api", __name__)
@@ -21,10 +22,54 @@ tasks = {}
 p = None
 
 
+@service_api.route("/shutdown")
+def shutdown():
+    if p is not None:
+        p.terminate()
+        p.join()
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+    return jsonify({"shutdown": True})
+
+
+@service_api.route("/loadcsv", methods=["POST"])
+def loadcsv():
+    global p
+    if p is None:
+        p = multiprocessing.Pool(5)
+
+    if "csv_path" not in request.files:
+        res = jsonify({"error": "File Not Sent"})
+        res.status_code = 400
+        return res
+
+    task_id = str(uuid.uuid4())
+
+    fname = os.path.join(
+        current_app.config["USER_DATA"],
+        task_id + ".csv"
+    )
+
+    request.files["csv_path"].save(fname)
+
+    tasks[task_id] = p.apply_async(
+        combined_load,
+        (fname,),
+        {
+            "metadata": {
+                "license": request.form["license"]
+            }
+        }
+    )
+    tasks["db_upload"] = tasks[task_id]
+
+    return redirect("/#history-tab")
+
+
 @service_api.route("/readdir", methods=["POST"])
 def readdir():
-    from app import db
-
     global p
     if p is None:
         p = multiprocessing.Pool(5)
@@ -38,17 +83,19 @@ def readdir():
         j.status_code = 400
         return j
 
-    upload_path = None
-    if "upload_path" in b:
-        upload_path = b["upload_path"]
-    else:
+    upload_path = b.get("upload_path")
+    if upload_path is None:
         j = jsonify({"error": "Missing upload_path"})
         j.status_code = 400
         return j
 
-    upload = False
-    if "upload" in b:
-        upload = b["upload"] is True
+    upload = b.get("upload", False)
+    recursive = b.get("recursive", True)
+    guid_syntax = b.get("guid_syntax", "uuid")
+    guid_prefix = b.get("guid_prefix")
+    guid_params = None
+    if guid_prefix is not None:
+        guid_params = ("(.*)", guid_prefix + "\1")
 
     task_id = str(uuid.uuid4())
 
@@ -58,7 +105,10 @@ def readdir():
             combined,
             (upload_path,),
             {
-                "out_file_name": task_id + ".csv"
+                "out_file_name": task_id + ".csv",
+                "recursive": recursive,
+                "guid_type": guid_syntax,
+                "guid_params": guid_params,
             }
         )
         tasks["db_upload"] = tasks[task_id]
@@ -68,7 +118,10 @@ def readdir():
             (upload_path,),
             {
                 "add_to_db": False,
-                "out_file_name": task_id + ".csv"
+                "out_file_name": task_id + ".csv",
+                "recursive": recursive,
+                "guid_type": guid_syntax,
+                "guid_params": guid_params,
             }
         )
     res = jsonify({"status": "STARTED", "task_id": task_id})
@@ -88,8 +141,6 @@ def return_readdir_file(filename):
 
 @service_api.route("/readdir/<string:task_id>", methods=["GET"])
 def check_readdir_task(task_id):
-    from app import db
-
     read_worker = None
     if task_id in tasks:
         read_worker = tasks[task_id]
@@ -174,8 +225,9 @@ def process():
 
 @service_api.route("/dirprompt")
 def dirprompt():
+    dirname = request.args.get("dirname")
     return jsonify({
-        "path": easygui.diropenbox()
+        "path": easygui.diropenbox(default=dirname)
     })
 
 

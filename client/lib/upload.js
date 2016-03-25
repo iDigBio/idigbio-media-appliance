@@ -7,13 +7,74 @@ var React = require("react");
   // "CC BY-NC-SA": ["CC BY-NC-SA", "(Attribution-NonCommercial-ShareAlike)", "http://creativecommons.org/licenses/by-nc-sa/4.0/"]
 
 module.exports = React.createClass({
+    uploadCSV: function(e){
+        // e.preventDefault();
+
+        // $("#csv-upload-form").submit();
+/*        var d = {};
+
+        var f = ["license", "csv_path"];
+        $(f).each(function(i, k){
+            if(document.config[k]) {
+                d[k] = document.config[k];
+            } else {
+                d[k] = $("#" + k).val()
+            }
+        })
+
+        console.log(d);
+
+        $.ajax({
+            type: "POST",
+            url: "/api/loadcsv",
+            data: JSON.stringify(d),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                if (upload) {
+                    document.active = "history";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "Upload Started",
+                        "ts": Date()
+                    });
+                } else {
+                    document.pollTask(data.task_id);
+
+                    document.active = "upload";
+                    document.messages.push({
+                        "level": "info",
+                        "text": "CSV Generation from " + document.config.upload_path + "started.",
+                        "taskID": data.task_id,
+                        "ts": Date()
+                    });
+                }
+
+                document.render();
+            },
+            error: function(errMsg) {
+                // Warning message on config failure?
+                document.save_failure = true;
+                document.messages.push({
+                    "level": "error",
+                    "text": "CSV Generation failed.",
+                    "error": errMsg,
+                    "ts": Date()
+                });
+
+                document.render();
+            }
+        });*/
+
+        // return false;
+    },
     render: function(){
         return (
             <div className="tab-pane container" id="upload-tab">
                 <div className="row">
                     <div className="col-md-12">&nbsp;</div>
                 </div>
-                <form id='csv-upload-form' className="form-horizontal">
+                <form id='csv-upload-form' className="form-horizontal" action="/api/loadcsv" method="POST" encType="multipart/form-data">
                     <div className="form-group">
                         <label className="col-md-3 control-label">Image <a href="http://creativecommons.org/licenses/" target="_blank">License</a> *</label>
                         <div className="col-md-9">
@@ -31,14 +92,10 @@ module.exports = React.createClass({
 
                     <div className="form-group">
                         <label className="col-md-3 control-label">CSV File Full Path *</label>
-                        <div className='col-md-9'>
-                            <div className="input-group">
-                                <div className="input-group-addon" onClick={this.addonClick}>Choose File</div>
-                                <input type="text" data-provide="typeahead" className="form-control"
-                                    id="csv_path" placeholder="This should be the full path including the CSV file name."
-                                    rel="tooltip" name="csv-path" data-title='e.g. /Users/you/collection.csv'
-                                    value={document.config.csv_path} onChange={document.formPropChange} onClick={document.getFile}/>
-                            </div>
+                        <div className='col-md-9'>                            
+                            <input type="file" data-provide="typeahead" className="form-control"
+                                id="csv_path" placeholder="This should be the full path including the CSV file name."
+                                rel="tooltip" name="csv_path" data-title='e.g. /Users/you/collection.csv' />
                         </div>
                     </div>
 
@@ -53,15 +110,13 @@ module.exports = React.createClass({
 
                         <div className='span3'>
                             <button id="csv-upload-button" type="submit" className="btn btn-primary btn-block">
-                                <i className="icon-upload icon-white"></i>
-                                <span>Upload</span>
+                                <i className="glyphicon-upload glyphicon"></i> Upload
                             </button>
                         </div>
 
                         <div className=''>
                             <a href="#CSVFileFormatModal" id="csv-file-format-button" role="button" className="btn btn-inverse btn-block" data-toggle="modal">
-                                <i className="icon-list-alt icon-white"></i>
-                                <span>CSV file format</span>
+                                <i className="glyphicon-list-alt glyphicon"></i> CSV file format
                             </a>
                         </div>
                     </div>
