@@ -3,7 +3,6 @@ Flask-RESTful
 Flask-SQLAlchemy
 alembic
 gevent
-idigbio
 easygui
 appdirs
 
