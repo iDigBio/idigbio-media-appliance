@@ -3,6 +3,7 @@ window.$ = jQuery = require('jquery');
 var React = require("react");
 var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
+require("bootstrap-notify");
 
 var hash = window.location.hash.substring(1);
 
@@ -18,7 +19,6 @@ if (hash == "upload-tab") {
 
 document.config = {}
 document.save_failure = false;
-document.messages = [];
 
 var MainUI = require('./lib/index.js');
 var UserIndicator = require('./lib/user.js');
@@ -121,11 +121,10 @@ document.pollTask = function(taskID) {
                 }, 5000)
             } else if (data.status == "DONE") {
                 if (data.filename !== undefined) {
-                    document.messages.push({
-                        "level": "info",
-                        "text": "CSV Generation from done.",
-                        "taskID": taskID,
-                        "ts": Date()
+                    $.notify({
+                        "message": "CSV Generation done."
+                    },{
+                        "type": "info"
                     });
                     window.location = "/api/getfile/" + data.filename
                 }
@@ -157,12 +156,27 @@ document.render = function(){
 
 $("#login-button").click(function(){
     var d = {
+        "user_alias": $("#login-form #accountalias").val(),
         "user_uuid": $("#login-form #accountuuid").val(),
         "auth_key": $("#login-form #apikey").val()
     }
 
     document.setConfig(d)
     $('#loginModal').modal('hide');
+
+    return false;
+});
+
+$("#prev-user-activate").click(function(){
+    var d = {
+        "user_alias": $("#prev-user option:selected").text(),
+        "user_uuid": $("#prev-user").val()
+    }
+
+    document.setConfig(d)
+    $('#loginModal').modal('hide');
+
+    return false;
 });
 
 
@@ -175,7 +189,7 @@ $.get('/api/appuser', function(data){
     });
 })
 
-},{"../server/static/components/bootstrap/dist/js/bootstrap.min.js":"/home/godfoder/idigbio-media-appliance/server/static/components/bootstrap/dist/js/bootstrap.min.js","./lib/index.js":"/home/godfoder/idigbio-media-appliance/client/lib/index.js","./lib/user.js":"/home/godfoder/idigbio-media-appliance/client/lib/user.js","./lib/warning.js":"/home/godfoder/idigbio-media-appliance/client/lib/warning.js","jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js","react-dom":"/home/godfoder/idigbio-media-appliance/node_modules/react-dom/index.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/generate.js":[function(require,module,exports){
+},{"../server/static/components/bootstrap/dist/js/bootstrap.min.js":"/home/godfoder/idigbio-media-appliance/server/static/components/bootstrap/dist/js/bootstrap.min.js","./lib/index.js":"/home/godfoder/idigbio-media-appliance/client/lib/index.js","./lib/user.js":"/home/godfoder/idigbio-media-appliance/client/lib/user.js","./lib/warning.js":"/home/godfoder/idigbio-media-appliance/client/lib/warning.js","bootstrap-notify":"/home/godfoder/idigbio-media-appliance/node_modules/bootstrap-notify/bootstrap-notify.js","jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js","react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js","react-dom":"/home/godfoder/idigbio-media-appliance/node_modules/react-dom/index.js"}],"/home/godfoder/idigbio-media-appliance/client/lib/generate.js":[function(require,module,exports){
 var React = require("react");
 
 module.exports = React.createClass({displayName: "exports",
@@ -226,20 +240,20 @@ module.exports = React.createClass({displayName: "exports",
             success: function(data){
                 if (upload) {
                     document.active = "history";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "Upload Started",
-                        "ts": Date()
+
+                    $.notify({
+                        "message": "Upload Started."
+                    },{
+                        "type": "info"
                     });
                 } else {
                     document.pollTask(data.task_id);
 
                     document.active = "upload";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "CSV Generation from " + document.config.upload_path + "started.",
-                        "taskID": data.task_id,
-                        "ts": Date()
+                    $.notify({
+                        "message": "CSV Generation from " + document.config.upload_path + "started."
+                    },{
+                        "type": "info"
                     });
                 }
 
@@ -248,11 +262,11 @@ module.exports = React.createClass({displayName: "exports",
             error: function(errMsg) {
                 // Warning message on config failure?
                 document.save_failure = true;
-                document.messages.push({
-                    "level": "error",
-                    "text": "CSV Generation failed.",
-                    "error": errMsg,
-                    "ts": Date()
+
+                $.notify({
+                    "message": "CSV Generation failed."
+                },{
+                    "type": "danger"
                 });
 
                 document.render();
@@ -406,21 +420,19 @@ module.exports = React.createClass({displayName: "exports",
             success: function(data){
                 document.pollTask(data.task_id);
 
-                document.messages.push({
-                    "level": "info",
-                    "text": "CSV Generation for " + self.props.period + " started.",
-                    "taskID": data.task_id,
-                    "ts": Date()
+                $.notify({
+                    "message": "CSV Generation for " + self.props.period + " started."
+                },{
+                    "type": "info"
                 });
 
                 document.render();
             },
             error: function(errMsg) {
-                document.messages.push({
-                    "level": "error",
-                    "text": "CSV Generation failed.",
-                    "error": errMsg,
-                    "ts": Date()
+                $.notify({
+                    "message": "CSV Generation failed."
+                },{
+                    "type": "danger"
                 });
 
                 document.render();
@@ -687,67 +699,6 @@ var React = require("react");
   // "CC BY-NC-SA": ["CC BY-NC-SA", "(Attribution-NonCommercial-ShareAlike)", "http://creativecommons.org/licenses/by-nc-sa/4.0/"]
 
 module.exports = React.createClass({displayName: "exports",
-    uploadCSV: function(e){
-        // e.preventDefault();
-
-        // $("#csv-upload-form").submit();
-/*        var d = {};
-
-        var f = ["license", "csv_path"];
-        $(f).each(function(i, k){
-            if(document.config[k]) {
-                d[k] = document.config[k];
-            } else {
-                d[k] = $("#" + k).val()
-            }
-        })
-
-        console.log(d);
-
-        $.ajax({
-            type: "POST",
-            url: "/api/loadcsv",
-            data: JSON.stringify(d),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function(data){
-                if (upload) {
-                    document.active = "history";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "Upload Started",
-                        "ts": Date()
-                    });
-                } else {
-                    document.pollTask(data.task_id);
-
-                    document.active = "upload";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "CSV Generation from " + document.config.upload_path + "started.",
-                        "taskID": data.task_id,
-                        "ts": Date()
-                    });
-                }
-
-                document.render();
-            },
-            error: function(errMsg) {
-                // Warning message on config failure?
-                document.save_failure = true;
-                document.messages.push({
-                    "level": "error",
-                    "text": "CSV Generation failed.",
-                    "error": errMsg,
-                    "ts": Date()
-                });
-
-                document.render();
-            }
-        });*/
-
-        // return false;
-    },
     render: function(){
         return (
             React.createElement("div", {className: "tab-pane container", id: "upload-tab"}, 
@@ -824,16 +775,14 @@ module.exports = React.createClass({displayName: "exports",
             success: function(){
                 document.config = {};
 
-                document.render();
-
-                self.login();
+                window.location = window.location;
             }
         });
     },
     render: function(){
         if (document.config.user_uuid !== undefined) {
             return (
-                React.createElement("li", null, React.createElement("label", null, document.config.user_uuid), React.createElement("button", {id: "logout-btn", className: "navbar-btn btn btn-warning", type: "button", onClick: this.logout}, "Logout"))
+                React.createElement("li", null, React.createElement("label", null, document.config.user_alias || document.config.user_uuid), " ", React.createElement("button", {id: "logout-btn", className: "navbar-btn btn btn-warning", type: "button", onClick: this.logout}, "Logout"))
             )
         } else {
             return (
@@ -853,18 +802,373 @@ module.exports = React.createClass({displayName: "exports",
         console.log("save_failure", document.save_failure)
         if (document.save_failure) {
             return (
-                React.createElement("li", null, "Warning! ", document.messages.length, " ")
+                React.createElement("li", null, React.createElement("span", {className: "label label-warning label-as-badge"}, React.createElement("i", {className: "glyphicon glyphicon-exclamation-sign", "data-toggle": "tooltip", title: "Config Save Error."}), " "))
             )
         } else {
             return (
-                React.createElement("li", null, "Config OK ", document.messages.length, " ")
+                React.createElement("li", null, React.createElement("span", {className: "label label-success label-as-badge"}, React.createElement("i", {className: "glyphicon glyphicon-ok-circle", "data-toggle": "tooltip", title: "Config OK"}), " "))
             )
         }
     }
 
 })
 
-},{"react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js":[function(require,module,exports){
+},{"react":"/home/godfoder/idigbio-media-appliance/node_modules/react/react.js"}],"/home/godfoder/idigbio-media-appliance/node_modules/bootstrap-notify/bootstrap-notify.js":[function(require,module,exports){
+/*
+* Project: Bootstrap Notify = v3.1.3
+* Description: Turns standard Bootstrap alerts into "Growl-like" notifications.
+* Author: Mouse0270 aka Robert McIntosh
+* License: MIT License
+* Website: https://github.com/mouse0270/bootstrap-growl
+*/
+(function (factory) {
+	if (typeof define === 'function' && define.amd) {
+		// AMD. Register as an anonymous module.
+		define(['jquery'], factory);
+	} else if (typeof exports === 'object') {
+		// Node/CommonJS
+		factory(require('jquery'));
+	} else {
+		// Browser globals
+		factory(jQuery);
+	}
+}(function ($) {
+	// Create the defaults once
+	var defaults = {
+			element: 'body',
+			position: null,
+			type: "info",
+			allow_dismiss: true,
+			newest_on_top: false,
+			showProgressbar: false,
+			placement: {
+				from: "top",
+				align: "right"
+			},
+			offset: 20,
+			spacing: 10,
+			z_index: 1031,
+			delay: 5000,
+			timer: 1000,
+			url_target: '_blank',
+			mouse_over: null,
+			animate: {
+				enter: 'animated fadeInDown',
+				exit: 'animated fadeOutUp'
+			},
+			onShow: null,
+			onShown: null,
+			onClose: null,
+			onClosed: null,
+			icon_type: 'class',
+			template: '<div data-notify="container" class="col-xs-11 col-sm-4 alert alert-{0}" role="alert"><button type="button" aria-hidden="true" class="close" data-notify="dismiss">&times;</button><span data-notify="icon"></span> <span data-notify="title">{1}</span> <span data-notify="message">{2}</span><div class="progress" data-notify="progressbar"><div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div></div><a href="{3}" target="{4}" data-notify="url"></a></div>'
+		};
+
+	String.format = function() {
+		var str = arguments[0];
+		for (var i = 1; i < arguments.length; i++) {
+			str = str.replace(RegExp("\\{" + (i - 1) + "\\}", "gm"), arguments[i]);
+		}
+		return str;
+	};
+
+	function Notify ( element, content, options ) {
+		// Setup Content of Notify
+		var content = {
+			content: {
+				message: typeof content == 'object' ? content.message : content,
+				title: content.title ? content.title : '',
+				icon: content.icon ? content.icon : '',
+				url: content.url ? content.url : '#',
+				target: content.target ? content.target : '-'
+			}
+		};
+
+		options = $.extend(true, {}, content, options);
+		this.settings = $.extend(true, {}, defaults, options);
+		this._defaults = defaults;
+		if (this.settings.content.target == "-") {
+			this.settings.content.target = this.settings.url_target;
+		}
+		this.animations = {
+			start: 'webkitAnimationStart oanimationstart MSAnimationStart animationstart',
+			end: 'webkitAnimationEnd oanimationend MSAnimationEnd animationend'
+		}
+
+		if (typeof this.settings.offset == 'number') {
+		    this.settings.offset = {
+		    	x: this.settings.offset,
+		    	y: this.settings.offset
+		    };
+		}
+
+		this.init();
+	};
+
+	$.extend(Notify.prototype, {
+		init: function () {
+			var self = this;
+
+			this.buildNotify();
+			if (this.settings.content.icon) {
+				this.setIcon();
+			}
+			if (this.settings.content.url != "#") {
+				this.styleURL();
+			}
+			this.styleDismiss();
+			this.placement();
+			this.bind();
+
+			this.notify = {
+				$ele: this.$ele,
+				update: function(command, update) {
+					var commands = {};
+					if (typeof command == "string") {
+						commands[command] = update;
+					}else{
+						commands = command;
+					}
+					for (var command in commands) {
+						switch (command) {
+							case "type":
+								this.$ele.removeClass('alert-' + self.settings.type);
+								this.$ele.find('[data-notify="progressbar"] > .progress-bar').removeClass('progress-bar-' + self.settings.type);
+								self.settings.type = commands[command];
+								this.$ele.addClass('alert-' + commands[command]).find('[data-notify="progressbar"] > .progress-bar').addClass('progress-bar-' + commands[command]);
+								break;
+							case "icon":
+								var $icon = this.$ele.find('[data-notify="icon"]');
+								if (self.settings.icon_type.toLowerCase() == 'class') {
+									$icon.removeClass(self.settings.content.icon).addClass(commands[command]);
+								}else{
+									if (!$icon.is('img')) {
+										$icon.find('img');
+									}
+									$icon.attr('src', commands[command]);
+								}
+								break;
+							case "progress":
+								var newDelay = self.settings.delay - (self.settings.delay * (commands[command] / 100));
+								this.$ele.data('notify-delay', newDelay);
+								this.$ele.find('[data-notify="progressbar"] > div').attr('aria-valuenow', commands[command]).css('width', commands[command] + '%');
+								break;
+							case "url":
+								this.$ele.find('[data-notify="url"]').attr('href', commands[command]);
+								break;
+							case "target":
+								this.$ele.find('[data-notify="url"]').attr('target', commands[command]);
+								break;
+							default:
+								this.$ele.find('[data-notify="' + command +'"]').html(commands[command]);
+						};
+					}
+					var posX = this.$ele.outerHeight() + parseInt(self.settings.spacing) + parseInt(self.settings.offset.y);
+					self.reposition(posX);
+				},
+				close: function() {
+					self.close();
+				}
+			};
+		},
+		buildNotify: function () {
+			var content = this.settings.content;
+			this.$ele = $(String.format(this.settings.template, this.settings.type, content.title, content.message, content.url, content.target));
+			this.$ele.attr('data-notify-position', this.settings.placement.from + '-' + this.settings.placement.align);
+			if (!this.settings.allow_dismiss) {
+				this.$ele.find('[data-notify="dismiss"]').css('display', 'none');
+			}
+			if ((this.settings.delay <= 0 && !this.settings.showProgressbar) || !this.settings.showProgressbar) {
+				this.$ele.find('[data-notify="progressbar"]').remove();
+			}
+		},
+		setIcon: function() {
+			if (this.settings.icon_type.toLowerCase() == 'class') {
+				this.$ele.find('[data-notify="icon"]').addClass(this.settings.content.icon);
+			}else{
+				if (this.$ele.find('[data-notify="icon"]').is('img')) {
+					this.$ele.find('[data-notify="icon"]').attr('src', this.settings.content.icon);
+				}else{
+					this.$ele.find('[data-notify="icon"]').append('<img src="'+this.settings.content.icon+'" alt="Notify Icon" />');
+				}
+			}
+		},
+		styleDismiss: function() {
+			this.$ele.find('[data-notify="dismiss"]').css({
+				position: 'absolute',
+				right: '10px',
+				top: '5px',
+				zIndex: this.settings.z_index + 2
+			});
+		},
+		styleURL: function() {
+			this.$ele.find('[data-notify="url"]').css({
+				backgroundImage: 'url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)',
+				height: '100%',
+				left: '0px',
+				position: 'absolute',
+				top: '0px',
+				width: '100%',
+				zIndex: this.settings.z_index + 1
+			});
+		},
+		placement: function() {
+			var self = this,
+				offsetAmt = this.settings.offset.y,
+				css = {
+					display: 'inline-block',
+					margin: '0px auto',
+					position: this.settings.position ?  this.settings.position : (this.settings.element === 'body' ? 'fixed' : 'absolute'),
+					transition: 'all .5s ease-in-out',
+					zIndex: this.settings.z_index
+				},
+				hasAnimation = false,
+				settings = this.settings;
+
+			$('[data-notify-position="' + this.settings.placement.from + '-' + this.settings.placement.align + '"]:not([data-closing="true"])').each(function() {
+				return offsetAmt = Math.max(offsetAmt, parseInt($(this).css(settings.placement.from)) +  parseInt($(this).outerHeight()) +  parseInt(settings.spacing));
+			});
+			if (this.settings.newest_on_top == true) {
+				offsetAmt = this.settings.offset.y;
+			}
+			css[this.settings.placement.from] = offsetAmt+'px';
+
+			switch (this.settings.placement.align) {
+				case "left":
+				case "right":
+					css[this.settings.placement.align] = this.settings.offset.x+'px';
+					break;
+				case "center":
+					css.left = 0;
+					css.right = 0;
+					break;
+			}
+			this.$ele.css(css).addClass(this.settings.animate.enter);
+			$.each(Array('webkit-', 'moz-', 'o-', 'ms-', ''), function(index, prefix) {
+				self.$ele[0].style[prefix+'AnimationIterationCount'] = 1;
+			});
+
+			$(this.settings.element).append(this.$ele);
+
+			if (this.settings.newest_on_top == true) {
+				offsetAmt = (parseInt(offsetAmt)+parseInt(this.settings.spacing)) + this.$ele.outerHeight();
+				this.reposition(offsetAmt);
+			}
+
+			if ($.isFunction(self.settings.onShow)) {
+				self.settings.onShow.call(this.$ele);
+			}
+
+			this.$ele.one(this.animations.start, function(event) {
+				hasAnimation = true;
+			}).one(this.animations.end, function(event) {
+				if ($.isFunction(self.settings.onShown)) {
+					self.settings.onShown.call(this);
+				}
+			});
+
+			setTimeout(function() {
+				if (!hasAnimation) {
+					if ($.isFunction(self.settings.onShown)) {
+						self.settings.onShown.call(this);
+					}
+				}
+			}, 600);
+		},
+		bind: function() {
+			var self = this;
+
+			this.$ele.find('[data-notify="dismiss"]').on('click', function() {
+				self.close();
+			})
+
+			this.$ele.mouseover(function(e) {
+				$(this).data('data-hover', "true");
+			}).mouseout(function(e) {
+				$(this).data('data-hover', "false");
+			});
+			this.$ele.data('data-hover', "false");
+
+			if (this.settings.delay > 0) {
+				self.$ele.data('notify-delay', self.settings.delay);
+				var timer = setInterval(function() {
+					var delay = parseInt(self.$ele.data('notify-delay')) - self.settings.timer;
+					if ((self.$ele.data('data-hover') === 'false' && self.settings.mouse_over == "pause") || self.settings.mouse_over != "pause") {
+						var percent = ((self.settings.delay - delay) / self.settings.delay) * 100;
+						self.$ele.data('notify-delay', delay);
+						self.$ele.find('[data-notify="progressbar"] > div').attr('aria-valuenow', percent).css('width', percent + '%');
+					}
+					if (delay <= -(self.settings.timer)) {
+						clearInterval(timer);
+						self.close();
+					}
+				}, self.settings.timer);
+			}
+		},
+		close: function() {
+			var self = this,
+				$successors = null,
+				posX = parseInt(this.$ele.css(this.settings.placement.from)),
+				hasAnimation = false;
+
+			this.$ele.data('closing', 'true').addClass(this.settings.animate.exit);
+			self.reposition(posX);
+
+			if ($.isFunction(self.settings.onClose)) {
+				self.settings.onClose.call(this.$ele);
+			}
+
+			this.$ele.one(this.animations.start, function(event) {
+				hasAnimation = true;
+			}).one(this.animations.end, function(event) {
+				$(this).remove();
+				if ($.isFunction(self.settings.onClosed)) {
+					self.settings.onClosed.call(this);
+				}
+			});
+
+			setTimeout(function() {
+				if (!hasAnimation) {
+					self.$ele.remove();
+					if (self.settings.onClosed) {
+						self.settings.onClosed(self.$ele);
+					}
+				}
+			}, 600);
+		},
+		reposition: function(posX) {
+			var self = this,
+				notifies = '[data-notify-position="' + this.settings.placement.from + '-' + this.settings.placement.align + '"]:not([data-closing="true"])',
+				$elements = this.$ele.nextAll(notifies);
+			if (this.settings.newest_on_top == true) {
+				$elements = this.$ele.prevAll(notifies);
+			}
+			$elements.each(function() {
+				$(this).css(self.settings.placement.from, posX);
+				posX = (parseInt(posX)+parseInt(self.settings.spacing)) + $(this).outerHeight();
+			});
+		}
+	});
+
+	$.notify = function ( content, options ) {
+		var plugin = new Notify( this, content, options );
+		return plugin.notify;
+	};
+	$.notifyDefaults = function( options ) {
+		defaults = $.extend(true, {}, defaults, options);
+		return defaults;
+	};
+	$.notifyClose = function( command ) {
+		if (typeof command === "undefined" || command == "all") {
+			$('[data-notify]').find('[data-notify="dismiss"]').trigger('click');
+		}else{
+			$('[data-notify-position="'+command+'"]').find('[data-notify="dismiss"]').trigger('click');
+		}
+	};
+
+}));
+
+},{"jquery":"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js"}],"/home/godfoder/idigbio-media-appliance/node_modules/jquery/dist/jquery.js":[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.2.1
  * http://jquery.com/

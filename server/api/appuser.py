@@ -11,7 +11,7 @@ appuser_api = Api(Blueprint("appuser_api", __name__))
 
 def filter_config(b):
     for k in list(b.keys()):
-        if k in ["user_uuid", "auth_key"]:
+        if k in ["user_uuid", "auth_key", "user_alias"]:
             del b[k]
 
 
@@ -40,6 +40,7 @@ class AppUserAPI(Resource):
             c = {}
             c.update(json.loads(u.config))
             c["id"] = u.id
+            c["user_alias"] = u.user_alias
             c["user_uuid"] = u.user_uuid
 
             return jsonify(c)
@@ -54,19 +55,29 @@ class AppUserAPI(Resource):
 
         b = request.get_json()
 
+        print(b)
+
         u = db.session.query(AppUser).filter(
             AppUser.user_uuid == b["user_uuid"]).first()
 
         if u is None:
             u = AppUser()
             u.user_uuid = b["user_uuid"]
-            u.auth_key = b["auth_key"]
+            if "user_alias" in b:
+                u.user_alias = b["user_alias"]
+
+            if "auth_key" in b:
+                u.auth_key = b["auth_key"]
+
             u.config = "{}"
             u.login_date = datetime.datetime.now()
         else:
             if "auth_key" in b:
                 # Validate API Key against API?
                 u.auth_key = b["auth_key"]
+
+            if "user_alias" in b:
+                u.user_alias = b["user_alias"]
 
             filter_config(b)
             d = json.loads(u.config)
@@ -75,6 +86,8 @@ class AppUserAPI(Resource):
 
             u.login_date = datetime.datetime.now()
 
+        print(u)
+
         db.session.add(u)
         db.session.commit()
 
@@ -82,6 +95,7 @@ class AppUserAPI(Resource):
         c.update(json.loads(u.config))
         c["id"] = u.id
         c["user_uuid"] = u.user_uuid
+        c["user_alias"] = u.user_alias
 
         return jsonify(c)
 

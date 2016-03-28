@@ -11,7 +11,7 @@ from models import Media, Batch
 
 from flask import Blueprint, request, current_app, jsonify, send_from_directory, redirect  # noqa
 
-from lib.workwork import do_run_db, do_create_media, combined_load, media_csv
+from lib.workwork import do_run_db, do_create_media, combined, combined_load, media_csv
 
 
 service_api = Blueprint("service_api", __name__)

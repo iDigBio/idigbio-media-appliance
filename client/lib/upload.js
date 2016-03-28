@@ -7,67 +7,6 @@ var React = require("react");
   // "CC BY-NC-SA": ["CC BY-NC-SA", "(Attribution-NonCommercial-ShareAlike)", "http://creativecommons.org/licenses/by-nc-sa/4.0/"]
 
 module.exports = React.createClass({
-    uploadCSV: function(e){
-        // e.preventDefault();
-
-        // $("#csv-upload-form").submit();
-/*        var d = {};
-
-        var f = ["license", "csv_path"];
-        $(f).each(function(i, k){
-            if(document.config[k]) {
-                d[k] = document.config[k];
-            } else {
-                d[k] = $("#" + k).val()
-            }
-        })
-
-        console.log(d);
-
-        $.ajax({
-            type: "POST",
-            url: "/api/loadcsv",
-            data: JSON.stringify(d),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function(data){
-                if (upload) {
-                    document.active = "history";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "Upload Started",
-                        "ts": Date()
-                    });
-                } else {
-                    document.pollTask(data.task_id);
-
-                    document.active = "upload";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "CSV Generation from " + document.config.upload_path + "started.",
-                        "taskID": data.task_id,
-                        "ts": Date()
-                    });
-                }
-
-                document.render();
-            },
-            error: function(errMsg) {
-                // Warning message on config failure?
-                document.save_failure = true;
-                document.messages.push({
-                    "level": "error",
-                    "text": "CSV Generation failed.",
-                    "error": errMsg,
-                    "ts": Date()
-                });
-
-                document.render();
-            }
-        });*/
-
-        // return false;
-    },
     render: function(){
         return (
             <div className="tab-pane container" id="upload-tab">

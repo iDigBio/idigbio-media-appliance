@@ -67,21 +67,19 @@ module.exports = React.createClass({
             success: function(data){
                 document.pollTask(data.task_id);
 
-                document.messages.push({
-                    "level": "info",
-                    "text": "CSV Generation for " + self.props.period + " started.",
-                    "taskID": data.task_id,
-                    "ts": Date()
+                $.notify({
+                    "message": "CSV Generation for " + self.props.period + " started."
+                },{
+                    "type": "info"
                 });
 
                 document.render();
             },
             error: function(errMsg) {
-                document.messages.push({
-                    "level": "error",
-                    "text": "CSV Generation failed.",
-                    "error": errMsg,
-                    "ts": Date()
+                $.notify({
+                    "message": "CSV Generation failed."
+                },{
+                    "type": "danger"
                 });
 
                 document.render();

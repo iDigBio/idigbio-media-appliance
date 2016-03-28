@@ -48,20 +48,20 @@ module.exports = React.createClass({
             success: function(data){
                 if (upload) {
                     document.active = "history";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "Upload Started",
-                        "ts": Date()
+
+                    $.notify({
+                        "message": "Upload Started."
+                    },{
+                        "type": "info"
                     });
                 } else {
                     document.pollTask(data.task_id);
 
                     document.active = "upload";
-                    document.messages.push({
-                        "level": "info",
-                        "text": "CSV Generation from " + document.config.upload_path + "started.",
-                        "taskID": data.task_id,
-                        "ts": Date()
+                    $.notify({
+                        "message": "CSV Generation from " + document.config.upload_path + "started."
+                    },{
+                        "type": "info"
                     });
                 }
 
@@ -70,11 +70,11 @@ module.exports = React.createClass({
             error: function(errMsg) {
                 // Warning message on config failure?
                 document.save_failure = true;
-                document.messages.push({
-                    "level": "error",
-                    "text": "CSV Generation failed.",
-                    "error": errMsg,
-                    "ts": Date()
+
+                $.notify({
+                    "message": "CSV Generation failed."
+                },{
+                    "type": "danger"
                 });
 
                 document.render();

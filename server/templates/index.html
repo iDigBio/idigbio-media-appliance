@@ -13,18 +13,22 @@
       body {
         padding-top: 60px;
         padding-bottom: 40px;
-      }   
+      }
 
       .na vli > label {
         line-height: 20px;
         padding: 10px 15px;
         margin: 0px;
-      } 
+      }
 
       div.inline-div {
         display: inline-block;
       }
-    
+
+      .label-as-badge {
+          border-radius: 1em;
+      }
+
     </style>
 
     <link rel="shortcut icon" href="static/img/favicon.ico">
@@ -39,8 +43,8 @@
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
-            <span class="icon-bar"></span> 
-          </button>        
+            <span class="icon-bar"></span>
+          </button>
           <a class="navbar-brand" target="_blank" href="http://www.idigbio.org">iDigBio</a>
         </div>
         <div class="collapse navbar-collapse" id="media-navbar-collapse">
@@ -136,20 +140,47 @@
             After you sign in, this combination will be saved by the
             application for your future use.
             </p>
+            <form id="prev-login-form" class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="accountuuid">
+                  Previous User
+                </label>
+                <div class="controls">
+                  <select id="prev-user" name="prev-user" class="form-control input-large">
+                    {% for user in users %}
+                      <option value="{{user.user_uuid}}">{{ user.user_alias if not user.user_alias is none else user.user_uuid }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <button name="prev-user-activate" id="prev-user-activate" class="btn btn-success">Activate User</button>
+            </form>
+
+            <h3> - OR - </h3>
+
             <form id="login-form" class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="accountuuid">
+                  Account Alias
+                </label>
+                <div class="controls">
+                  <input id="accountalias" name="accountalias" class="form-control input-large"
+                  type="text" placeholder="Account Alias">
+                </div>
+              </div>
               <div class="control-group">
                 <label class="control-label" for="accountuuid">
                   Account UUID
                 </label>
                 <div class="controls">
-                  <input id="accountuuid" name="accountuuid" class="input-large"
+                  <input id="accountuuid" name="accountuuid" class="form-control input-large"
                   type="text" placeholder="Account UUID">
                 </div>
               </div>
               <div class="control-group">
                 <label class="control-label" for="apikey">API Key</label>
                 <div class="controls">
-                  <input id="apikey" name="apikey" class="input-large" type="password" placeholder="API Key">
+                  <input id="apikey" name="apikey" class="form-control input-large" type="password" placeholder="API Key">
                 </div>
               </div>
               <div class="control-group">
@@ -191,7 +222,7 @@
 
     <div class="modal fade" id="CSVFileFormatModal" tabindex="-1" role="dialog" aria-labelledby="csvModalHeader">
       <div class="modal-dialog" role="document">
-        <div class="modal-content">      
+        <div class="modal-content">
           <div class="modal-header">
             <h3 id="csvModalHeader">iDigBio MISC Input CSV File Format</h3>
           </div>
@@ -230,7 +261,7 @@
     <script src="static/js/async.min.js"></script>
     <script src="static/js/throbber.js"></script>
     <script type="text/javascript" charset="utf8" src="static/js/jquery.cookie.js"></script>
-    
+
     <script type="text/javascript" charset="utf8" src="static/DataTables/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" charset="utf8" src="static/TableTools/js/TableTools.min.js"></script>
     <script type="text/javascript" charset="utf8" src="static/DataTables/js/DT-bootstrap.js"></script>

@@ -15,16 +15,14 @@ module.exports = React.createClass({
             success: function(){
                 document.config = {};
 
-                document.render();
-
-                self.login();
+                window.location = window.location;
             }
         });
     },
     render: function(){
         if (document.config.user_uuid !== undefined) {
             return (
-                <li><label>{document.config.user_uuid}</label><button id="logout-btn" className="navbar-btn btn btn-warning" type="button" onClick={this.logout}>Logout</button></li>
+                <li><label>{document.config.user_alias || document.config.user_uuid}</label> <button id="logout-btn" className="navbar-btn btn btn-warning" type="button" onClick={this.logout}>Logout</button></li>
             )
         } else {
             return (

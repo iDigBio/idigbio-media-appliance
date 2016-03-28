@@ -2,6 +2,7 @@ window.$ = jQuery = require('jquery');
 var React = require("react");
 var ReactDOM = require("react-dom");
 require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
+require("bootstrap-notify");
 
 var hash = window.location.hash.substring(1);
 
@@ -17,7 +18,6 @@ if (hash == "upload-tab") {
 
 document.config = {}
 document.save_failure = false;
-document.messages = [];
 
 var MainUI = require('./lib/index.js');
 var UserIndicator = require('./lib/user.js');
@@ -120,11 +120,10 @@ document.pollTask = function(taskID) {
                 }, 5000)
             } else if (data.status == "DONE") {
                 if (data.filename !== undefined) {
-                    document.messages.push({
-                        "level": "info",
-                        "text": "CSV Generation from done.",
-                        "taskID": taskID,
-                        "ts": Date()
+                    $.notify({
+                        "message": "CSV Generation done."
+                    },{
+                        "type": "info"
                     });
                     window.location = "/api/getfile/" + data.filename
                 }
@@ -156,12 +155,27 @@ document.render = function(){
 
 $("#login-button").click(function(){
     var d = {
+        "user_alias": $("#login-form #accountalias").val(),
         "user_uuid": $("#login-form #accountuuid").val(),
         "auth_key": $("#login-form #apikey").val()
     }
 
     document.setConfig(d)
     $('#loginModal').modal('hide');
+
+    return false;
+});
+
+$("#prev-user-activate").click(function(){
+    var d = {
+        "user_alias": $("#prev-user option:selected").text(),
+        "user_uuid": $("#prev-user").val()
+    }
+
+    document.setConfig(d)
+    $('#loginModal').modal('hide');
+
+    return false;
 });
 
 
