@@ -11,7 +11,7 @@ from models import Media, Batch
 
 from flask import Blueprint, request, current_app, jsonify, send_from_directory, redirect  # noqa
 
-from lib.workwork import do_run_db, do_create_media, combined_load
+from lib.workwork import do_run_db, do_create_media, combined_load, media_csv
 
 
 service_api = Blueprint("service_api", __name__)
@@ -32,6 +32,29 @@ def shutdown():
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
     return jsonify({"shutdown": True})
+
+
+@service_api.route("/mediacsv", methods=["POST"])
+def genmediacsv():
+    global p
+    if p is None:
+        p = multiprocessing.Pool(5)
+
+    task_id = str(uuid.uuid4())
+
+    tasks[task_id] = p.apply_async(
+        media_csv,
+        [],
+        {
+            "period": request.args.get("period"),
+            "out_file_name": task_id + ".csv"
+        }
+    )
+
+    res = jsonify({"status": "STARTED", "task_id": task_id})
+    res.status_code = 201
+
+    return res
 
 
 @service_api.route("/loadcsv", methods=["POST"])
@@ -140,6 +163,7 @@ def return_readdir_file(filename):
 
 
 @service_api.route("/readdir/<string:task_id>", methods=["GET"])
+@service_api.route("/status/<string:task_id>", methods=["GET"])
 def check_readdir_task(task_id):
     read_worker = None
     if task_id in tasks:

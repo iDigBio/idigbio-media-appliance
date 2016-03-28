@@ -136,22 +136,6 @@ document.pollTask = function(taskID) {
     });
 }
 
-document.listMedia = function(params, cb) {
-    $.ajax({
-        type: "GET",
-        url: "/api/media",
-        data: params,
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function(data){
-            cb(data);
-        },
-        failure: function(errMsg) {
-            console.log(errMsg);
-        }
-    });
-}
-
 document.render = function(){
         ReactDOM.render(
             <MainUI active={document.active}/>,

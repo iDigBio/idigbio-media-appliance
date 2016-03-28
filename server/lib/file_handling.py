@@ -12,6 +12,13 @@ file_types = {
     "stl": ("models", "model/mesh")
 }
 
+type_dc_type = {
+    "images": "StillImage",
+    "sounds": "Sound",
+    "videos": "MovingImage",
+    "models": "InteractiveResource"
+}
+
 
 def check_update(m, p, current_user, guid_type=None):
     h = calcFileHash(p)

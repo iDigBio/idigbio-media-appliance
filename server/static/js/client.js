@@ -137,22 +137,6 @@ document.pollTask = function(taskID) {
     });
 }
 
-document.listMedia = function(params, cb) {
-    $.ajax({
-        type: "GET",
-        url: "/api/media",
-        data: params,
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function(data){
-            cb(data);
-        },
-        failure: function(errMsg) {
-            console.log(errMsg);
-        }
-    });
-}
-
 document.render = function(){
         ReactDOM.render(
             React.createElement(MainUI, {active: document.active}),
@@ -368,13 +352,12 @@ module.exports = React.createClass({displayName: "exports",
         };
     },
     componentWillMount: function(){
-        var self = this;
-
-        document.listMedia({"limit": this.state.limit, "offset": this.state.offset}, function(data){
-            self.setState({"items": data.media})
-        });
+        this.listMedia(this.state.offset);
         this.updateState();
         this.checkUpload();
+    },
+    componentWillReceiveProps: function(props){
+        this.listMedia(this.state.offset, props.period);
     },
     goToPage: function(e) {
         var self = this;
@@ -387,8 +370,61 @@ module.exports = React.createClass({displayName: "exports",
         var page = tar.attr("data-page");
         var offset = (page - 1) * this.state.limit;
 
-        document.listMedia({"limit": this.state.limit, "offset": offset}, function(data){
-            self.setState({"items": data.media, "offset": offset})
+        self.listMedia(offset);
+    },
+    listMedia: function(offset, period) {
+        var self = this;
+        if (period === undefined) {
+            period = this.props.period
+        }
+        $.ajax({
+            type: "GET",
+            url: "/api/media",
+            data: {
+                "limit": this.state.limit,
+                "offset": offset,
+                "time_period": period
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                self.setState({"items": data.media, "offset": offset})
+            },
+            failure: function(errMsg) {
+                console.log(errMsg);
+            }
+        });
+    },
+    genCSV: function(e) {
+        var self = this;
+        $.ajax({
+            type: "POST",
+            url: "/api/mediacsv",
+            data: { "period": self.props.period },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                document.pollTask(data.task_id);
+
+                document.messages.push({
+                    "level": "info",
+                    "text": "CSV Generation for " + self.props.period + " started.",
+                    "taskID": data.task_id,
+                    "ts": Date()
+                });
+
+                document.render();
+            },
+            error: function(errMsg) {
+                document.messages.push({
+                    "level": "error",
+                    "text": "CSV Generation failed.",
+                    "error": errMsg,
+                    "ts": Date()
+                });
+
+                document.render();
+            }
         });
     },
     componentWillUnmount: function(){
@@ -405,7 +441,6 @@ module.exports = React.createClass({displayName: "exports",
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function(data){
-                console.log(data);
                 var s = {}
                 self.state.timeouts["status"] = setTimeout(self.updateState, 5000);
                 s.status = data;
@@ -460,7 +495,7 @@ module.exports = React.createClass({displayName: "exports",
         var maxPage = Math.max(currentPage+5, 10);
 
         pagerItems.push(
-            React.createElement("li", null, 
+            React.createElement("li", {key: "pager_item_prev"}, 
               React.createElement("a", {href: "#", "aria-label": "Previous", onClick: this.goToPage, "data-page": Math.max(currentPage-1,1)}, 
                 React.createElement("span", {"aria-hidden": "true"}, "«")
               )
@@ -469,14 +504,14 @@ module.exports = React.createClass({displayName: "exports",
 
         for (var i = minPage; i < maxPage+1; i++) {
             if (i == currentPage) {
-                pagerItems.push(React.createElement("li", {className: "active"}, React.createElement("a", {href: "#", "data-page": i, onClick: this.goToPage}, i)))
+                pagerItems.push(React.createElement("li", {key: "pager_item_" + i, className: "active"}, React.createElement("a", {href: "#", "data-page": i, onClick: this.goToPage}, i)))
             } else {
-                pagerItems.push(React.createElement("li", null, React.createElement("a", {href: "#", "data-page": i, onClick: this.goToPage}, i)))
+                pagerItems.push(React.createElement("li", {key: "pager_item_" + i}, React.createElement("a", {href: "#", "data-page": i, onClick: this.goToPage}, i)))
             }
         }
 
         pagerItems.push(
-            React.createElement("li", null, 
+            React.createElement("li", {key: "pager_item_next"}, 
               React.createElement("a", {href: "#", "aria-label": "Next", onClick: this.goToPage, "data-page": Math.min(currentPage+1,Math.floor((this.state.status.count || 0) / this.state.limit))}, 
                 React.createElement("span", {"aria-hidden": "true"}, "»")
               )
@@ -498,10 +533,6 @@ module.exports = React.createClass({displayName: "exports",
             "warning": ((this.state.status.missing || 0) / (this.state.status.count || 1)) * 100,
             "error": ((this.state.status.failed || 0) / (this.state.status.count || 1)) * 100
         }
-
-        console.log(percents);
-
-
 
         return (
             React.createElement("div", {className: "row"}, 
@@ -542,27 +573,47 @@ module.exports = React.createClass({displayName: "exports",
                     button
                 ), 
                 React.createElement("div", {className: "col-md-9 text-center"}, 
-                    React.createElement("nav", null, 
-                      React.createElement("ul", {className: "pagination", style: {"margin": "0px"}}, 
-                        pagerItems
-                      )
-                    ), 
-                    React.createElement("table", {className: "table table-striped text-left"}, 
-                        React.createElement("thead", null, 
-                            React.createElement("tr", null, 
-                                React.createElement("th", null, 
-                                    "Media Path"
-                                ), 
-                                React.createElement("th", null, 
-                                    "GUID"
-                                ), 
-                                React.createElement("th", null, 
-                                    "Status"
-                                )
+                    React.createElement("div", {className: "row"}, 
+                        React.createElement("div", {className: "col-md-3"}, 
+                            React.createElement("button", {className: "btn btn-success", onClick: this.genCSV}, React.createElement("i", {className: "glyphicon glyphicon-download"}), " Download Media as CSV")
+                        ), 
+                        React.createElement("div", {className: "col-md-6"}, 
+                            React.createElement("nav", null, 
+                              React.createElement("ul", {className: "pagination", style: {"margin": "0px"}}, 
+                                pagerItems
+                              )
                             )
                         ), 
-                        React.createElement("tbody", null, 
-                            mediaItems
+                        React.createElement("div", {className: "col-md-3"}, 
+                            React.createElement("select", {id: "time_period", name: "time_period", className: "form-control", 
+                            value: this.props.period, onChange: document.formPropChange}, 
+                                React.createElement("option", {value: "all"}, "Show All"), 
+                                React.createElement("option", {value: "day"}, "Last Day"), 
+                                React.createElement("option", {value: "week"}, "Last 7 Days"), 
+                                React.createElement("option", {value: "month"}, "Last 30 Days")
+                            )
+                        )
+                    ), 
+                    React.createElement("div", {className: "row"}, 
+                        React.createElement("div", {className: "col-md-12"}, 
+                            React.createElement("table", {className: "table table-striped text-left"}, 
+                                React.createElement("thead", null, 
+                                    React.createElement("tr", null, 
+                                        React.createElement("th", null, 
+                                            "Media Path"
+                                        ), 
+                                        React.createElement("th", null, 
+                                            "GUID"
+                                        ), 
+                                        React.createElement("th", null, 
+                                            "Status"
+                                        )
+                                    )
+                                ), 
+                                React.createElement("tbody", null, 
+                                    mediaItems
+                                )
+                            )
                         )
                     )
                 )
@@ -608,7 +659,7 @@ module.exports = React.createClass({displayName: "exports",
         if (this.props.active == "upload") {
             activeTab = React.createElement(UploadUI, null)
         } else if (this.props.active == "history") {
-            activeTab = React.createElement(HistoryUI, null)
+            activeTab = React.createElement(HistoryUI, {period: document.config.time_period})
         } else if (this.props.active == "generate") {
             activeTab = React.createElement(GenerateUI, null)
         } else {

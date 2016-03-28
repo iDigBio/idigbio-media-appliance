@@ -13,13 +13,12 @@ module.exports = React.createClass({
         };
     },
     componentWillMount: function(){
-        var self = this;
-
-        document.listMedia({"limit": this.state.limit, "offset": this.state.offset}, function(data){
-            self.setState({"items": data.media})
-        });
+        this.listMedia(this.state.offset);
         this.updateState();
         this.checkUpload();
+    },
+    componentWillReceiveProps: function(props){
+        this.listMedia(this.state.offset, props.period);
     },
     goToPage: function(e) {
         var self = this;
@@ -32,8 +31,61 @@ module.exports = React.createClass({
         var page = tar.attr("data-page");
         var offset = (page - 1) * this.state.limit;
 
-        document.listMedia({"limit": this.state.limit, "offset": offset}, function(data){
-            self.setState({"items": data.media, "offset": offset})
+        self.listMedia(offset);
+    },
+    listMedia: function(offset, period) {
+        var self = this;
+        if (period === undefined) {
+            period = this.props.period
+        }
+        $.ajax({
+            type: "GET",
+            url: "/api/media",
+            data: {
+                "limit": this.state.limit,
+                "offset": offset,
+                "time_period": period
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                self.setState({"items": data.media, "offset": offset})
+            },
+            failure: function(errMsg) {
+                console.log(errMsg);
+            }
+        });
+    },
+    genCSV: function(e) {
+        var self = this;
+        $.ajax({
+            type: "POST",
+            url: "/api/mediacsv",
+            data: { "period": self.props.period },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                document.pollTask(data.task_id);
+
+                document.messages.push({
+                    "level": "info",
+                    "text": "CSV Generation for " + self.props.period + " started.",
+                    "taskID": data.task_id,
+                    "ts": Date()
+                });
+
+                document.render();
+            },
+            error: function(errMsg) {
+                document.messages.push({
+                    "level": "error",
+                    "text": "CSV Generation failed.",
+                    "error": errMsg,
+                    "ts": Date()
+                });
+
+                document.render();
+            }
         });
     },
     componentWillUnmount: function(){
@@ -50,7 +102,6 @@ module.exports = React.createClass({
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function(data){
-                console.log(data);
                 var s = {}
                 self.state.timeouts["status"] = setTimeout(self.updateState, 5000);
                 s.status = data;
@@ -105,7 +156,7 @@ module.exports = React.createClass({
         var maxPage = Math.max(currentPage+5, 10);
 
         pagerItems.push(
-            <li>
+            <li key="pager_item_prev">
               <a href="#" aria-label="Previous" onClick={this.goToPage} data-page={Math.max(currentPage-1,1)}>
                 <span aria-hidden="true">&laquo;</span>
               </a>
@@ -114,14 +165,14 @@ module.exports = React.createClass({
 
         for (var i = minPage; i < maxPage+1; i++) {
             if (i == currentPage) {
-                pagerItems.push(<li className="active"><a href="#" data-page={i} onClick={this.goToPage}>{i}</a></li>)
+                pagerItems.push(<li key={"pager_item_" + i} className="active"><a href="#" data-page={i} onClick={this.goToPage}>{i}</a></li>)
             } else {
-                pagerItems.push(<li><a href="#" data-page={i} onClick={this.goToPage}>{i}</a></li>)
+                pagerItems.push(<li key={"pager_item_" + i}><a href="#" data-page={i} onClick={this.goToPage}>{i}</a></li>)
             }
         }
 
         pagerItems.push(
-            <li>
+            <li key="pager_item_next">
               <a href="#" aria-label="Next" onClick={this.goToPage} data-page={Math.min(currentPage+1,Math.floor((this.state.status.count || 0) / this.state.limit))}>
                 <span aria-hidden="true">&raquo;</span>
               </a>
@@ -143,10 +194,6 @@ module.exports = React.createClass({
             "warning": ((this.state.status.missing || 0) / (this.state.status.count || 1)) * 100,
             "error": ((this.state.status.failed || 0) / (this.state.status.count || 1)) * 100
         }
-
-        console.log(percents);
-
-
 
         return (
             <div className="row">
@@ -187,29 +234,49 @@ module.exports = React.createClass({
                     {button}
                 </div>
                 <div className="col-md-9 text-center">
-                    <nav>
-                      <ul className="pagination" style={{"margin": "0px"}}>
-                        {pagerItems}
-                      </ul>
-                    </nav>
-                    <table className="table table-striped text-left">
-                        <thead>
-                            <tr>
-                                <th>
-                                    Media Path
-                                </th>
-                                <th>
-                                    GUID
-                                </th>
-                                <th>
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {mediaItems}
-                        </tbody>
-                    </table>
+                    <div className="row">
+                        <div className="col-md-3">
+                            <button className="btn btn-success" onClick={this.genCSV}><i className="glyphicon glyphicon-download"></i> Download Media as CSV</button>
+                        </div>
+                        <div className="col-md-6">
+                            <nav>
+                              <ul className="pagination" style={{"margin": "0px"}}>
+                                {pagerItems}
+                              </ul>
+                            </nav>
+                        </div>
+                        <div className="col-md-3">
+                            <select id="time_period" name="time_period" className="form-control" 
+                            value={this.props.period} onChange={document.formPropChange} >
+                                <option value="all">Show All</option>
+                                <option value="day">Last Day</option>
+                                <option value="week">Last 7 Days</option>
+                                <option value="month">Last 30 Days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-md-12">
+                            <table className="table table-striped text-left">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Media Path
+                                        </th>
+                                        <th>
+                                            GUID
+                                        </th>
+                                        <th>
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {mediaItems}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         )

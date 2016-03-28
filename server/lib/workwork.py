@@ -11,7 +11,7 @@ from gevent.pool import Pool
 from functools import partial
 from itertools import islice
 from collections import Counter
-from lib.file_handling import process_media, check_update
+from lib.file_handling import process_media, check_update, type_dc_type
 from lib.dir_handling import scan_dir
 from models import Media
 from app import db, app
@@ -104,10 +104,15 @@ def do_run_db():
     logging.info("DB Run Started")
     p = Pool(50)
 
+    current_user = get_current_user()
+    if current_user is None:
+        raise NotAuthorizedException
+
     last_i = 0
     pm_no_update = partial(process_media, update_db=False)
     media_query = db.session.query(Media).filter(
-        db.or_(Media.status == None, Media.status != "uploaded"))  # noqa
+        db.or_(Media.status == None, Media.status != "uploaded")).filter(
+        Media.appuser == current_user)  # noqa
     for i, m in enumerate(p.imap_unordered(pm_no_update, media_query)):
         last_i = i + 1
         db.session.add(m)
@@ -116,6 +121,79 @@ def do_run_db():
             db.session.commit()
     logging.info("DB Run Finished: {} records processed".format(last_i))
     db.session.commit()
+
+
+def media_csv(period=None, out_file_name=None):
+    query = db.session.query(Media)
+
+    last_date = None
+    if period == "day":
+        last_date = datetime.datetime.now() - datetime.timedelta(days=1)
+    elif period == "week":
+        last_date = datetime.datetime.now() - datetime.timedelta(days=7)
+    elif period == "month":
+        last_date = datetime.datetime.now() - datetime.timedelta(days=30)
+
+    if last_date is not None:
+        query = query.filter(Media.status_date > (last_date))
+
+    if out_file_name is None:
+        out_file_name = str(uuid.uuid4()) + ".csv"
+
+    with open(
+        os.path.join(
+            app.config["USER_DATA"],
+            out_file_name
+        ),
+        "w",
+        encoding="utf-8"
+    ) as out_file:
+        writer = csv.writer(out_file)
+        writer.writerow([
+            "idigbio:recordID",
+            "ac:accessURI",
+            "dc:type",
+            "dc:format",
+            "idigbio:OriginalFileName",
+            "ac:hashFunction",
+            "ac:hashValue",
+            "idigbio:jsonProperties",
+            "idigbio:mediaStatus",
+            "idigbio:mediaStatusDate",
+            "idigbio:mediaStatusDetail"
+        ])
+
+        for m in query.all():
+            if m.status == "uploaded":
+                writer.writerow([
+                    m.file_reference,
+                    "http://media.idigbio.org/" + m.image_hash,
+                    type_dc_type[m.media_type],
+                    m.mime,
+                    m.path,
+                    "md5",
+                    m.image_hash,
+                    m.props,
+                    m.status,
+                    m.status_date,
+                    m.status_detail
+                ])
+            else:
+                writer.writerow([
+                    m.file_reference,
+                    "",
+                    type_dc_type[m.media_type],
+                    m.mime,
+                    m.path,
+                    "md5",
+                    m.image_hash,
+                    m.props,
+                    m.status,
+                    m.status_date,
+                    m.status_detail
+                ])
+
+    return out_file_name
 
 
 def do_create_media(directory, guid_type="uuid", guid_params=None,
@@ -159,9 +237,6 @@ def do_create_media(directory, guid_type="uuid", guid_params=None,
 
     return out_file_name
 
+
 if __name__ == '__main__':
-    do_create_media("/media/godfoder/BISH_2/raw_media_archive_jpg")
-    # pid = os.getpid()
-    # logging.info("Processing job {} started.".format(pid))
-    # do_run_db()
-    # logging.info("Processing job {} ended.".format(pid))
+    print(media_csv())

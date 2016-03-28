@@ -34,7 +34,7 @@ module.exports = React.createClass({
         if (this.props.active == "upload") {
             activeTab = <UploadUI />
         } else if (this.props.active == "history") {
-            activeTab = <HistoryUI />
+            activeTab = <HistoryUI period={document.config.time_period} />
         } else if (this.props.active == "generate") {
             activeTab = <GenerateUI />
         } else {

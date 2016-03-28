@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 
 from flask import Blueprint, request, g, jsonify
 from flask_restful import Api, Resource
@@ -21,6 +22,8 @@ class MediaAPI(Resource):
 
     @staticmethod
     def get():
+        from app import db
+
         try:
             o = int(request.args.get('offset', 0))
             l = int(request.args.get('limit', 100))
@@ -28,6 +31,20 @@ class MediaAPI(Resource):
             res = jsonify({"error": "Limit and offset must be integers"})
             res.status_code = 400
             return res
+
+        period = request.args.get('time_period', 'all')
+        query = db.session.query(Media)
+
+        last_date = None
+        if period == "day":
+            last_date = datetime.datetime.now() - datetime.timedelta(days=1)
+        elif period == "week":
+            last_date = datetime.datetime.now() - datetime.timedelta(days=7)
+        elif period == "month":
+            last_date = datetime.datetime.now() - datetime.timedelta(days=30)
+
+        if last_date is not None:
+            query = query.filter(Media.status_date > (last_date))
 
         return {
             "count": Media.query.count(),
@@ -43,7 +60,7 @@ class MediaAPI(Resource):
                     "status": media.status,
                     "status_date": format_status_date(media),
                     "status_detail": media.status_detail
-                } for media in Media.query[o:o+l]
+                } for media in query[o:o+l]
             ]
         }
 

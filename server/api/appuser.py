@@ -57,8 +57,6 @@ class AppUserAPI(Resource):
         u = db.session.query(AppUser).filter(
             AppUser.user_uuid == b["user_uuid"]).first()
 
-        print(b, u)
-
         if u is None:
             u = AppUser()
             u.user_uuid = b["user_uuid"]
