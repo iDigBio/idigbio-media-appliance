@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function, division, unicode_literals
+
 import sys
 import os
 
@@ -7,11 +9,12 @@ import easygui
 import traceback
 import uuid
 
-from models import Media, Batch
-
 from flask import Blueprint, request, current_app, jsonify, send_from_directory, redirect  # noqa
 
-from lib.workwork import do_run_db, do_create_media, combined, combined_load, media_csv
+from ..models import Media
+
+from ..lib import get_uuid_unicode
+from ..lib.workwork import do_run_db, do_create_media, combined, combined_load, media_csv
 
 
 service_api = Blueprint("service_api", __name__)
@@ -40,7 +43,7 @@ def genmediacsv():
     if p is None:
         p = multiprocessing.Pool(5)
 
-    task_id = str(uuid.uuid4())
+    task_id = get_uuid_unicode()
 
     tasks[task_id] = p.apply_async(
         media_csv,
@@ -68,7 +71,7 @@ def loadcsv():
         res.status_code = 400
         return res
 
-    task_id = str(uuid.uuid4())
+    task_id = get_uuid_unicode()
 
     fname = os.path.join(
         current_app.config["USER_DATA"],
@@ -120,7 +123,7 @@ def readdir():
     if guid_prefix is not None:
         guid_params = ("(.*)", guid_prefix + "\1")
 
-    task_id = str(uuid.uuid4())
+    task_id = get_uuid_unicode()
 
     current_app.logger.debug("Starting Worker %s", upload_path)
     if upload:
@@ -195,7 +198,7 @@ def check_readdir_task(task_id):
 
 @service_api.route("/process")
 def process():
-    from app import db
+    from ..app import db
 
     start = True
     try:
@@ -234,7 +237,7 @@ def process():
             current_app.logger.debug("DB Upload Done")
             res = jsonify({"status": "ENDED"})
         except Exception as e:
-            current_app.loggger.exception("Error in process")
+            current_app.logger.exception("Error in process")
             del tasks["db_worker"]
             res = jsonify({"status": "ERROR", "error": str(e)})
             res.status_code = 500

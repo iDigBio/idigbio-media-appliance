@@ -1,10 +1,12 @@
+from __future__ import absolute_import, print_function, division, unicode_literals
+
 import json
 import datetime
 
 from flask import Blueprint, request, jsonify, g
 from flask_restful import Api, Resource
 
-from models import AppUser
+from ..models import AppUser
 
 appuser_api = Api(Blueprint("appuser_api", __name__))
 
@@ -16,7 +18,7 @@ def filter_config(b):
 
 
 def get_current_user():
-    from app import db
+    from ..app import db
 
     return db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
             AppUser.login_date.desc()).first()
@@ -24,7 +26,7 @@ def get_current_user():
 
 @appuser_api.blueprint.before_app_request
 def set_current_user():
-    from app import db
+    from ..app import db
 
     g.appuser = get_current_user()
 
@@ -51,11 +53,9 @@ class AppUserAPI(Resource):
 
     @staticmethod
     def post():
-        from app import db
+        from ..app import db
 
         b = request.get_json()
-
-        print(b)
 
         u = db.session.query(AppUser).filter(
             AppUser.user_uuid == b["user_uuid"]).first()
@@ -86,8 +86,6 @@ class AppUserAPI(Resource):
 
             u.login_date = datetime.datetime.now()
 
-        print(u)
-
         db.session.add(u)
         db.session.commit()
 
@@ -101,7 +99,7 @@ class AppUserAPI(Resource):
 
     @staticmethod
     def delete():
-        from app import db
+        from ..app import db
 
         u = db.session.query(AppUser).filter(AppUser.login_date != None).order_by(  # noqa
             AppUser.login_date.desc()).first()

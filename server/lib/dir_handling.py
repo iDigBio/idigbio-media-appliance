@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function, division, unicode_literals
+
 import os
 import uuid
 import re
@@ -5,15 +7,16 @@ import datetime
 
 from functools import partial
 
-from lib.file_handling import file_types, calcFileHash
+from .file_handling import file_types, calcFileHash, check_update
 
-from models import Media
-from api.appuser import get_current_user
-from lib.file_handling import check_update
+from ..models import Media
+from ..api.appuser import get_current_user
+
+from . import get_uuid_unicode
 
 guid_mode = {
     "regex": lambda regex, tmpl, path: regex.match(path).expand(tmpl),
-    "uuid": lambda path: str(uuid.uuid4()),
+    "uuid": lambda path: get_uuid_unicode(),
     "hash": lambda path: calcFileHash(path),
 }
 

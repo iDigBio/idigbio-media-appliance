@@ -5,6 +5,8 @@ alembic
 gevent
 easygui
 appdirs
+idigbio
+unicodecsv
 
 pytest
 pytest-flask

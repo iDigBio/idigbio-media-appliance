@@ -1,21 +1,38 @@
+from __future__ import absolute_import, print_function, division, unicode_literals
+
 import os
 import logging
-import csv
+
+import io
+import unicodecsv as csv
 import uuid
 import json
+import idigbio
 
-from pathlib import Path
-from urllib.parse import urlparse, unquote
-from config import basedir
+try:
+    from pathlib import Path
+except ImportError:
+    from pathlib2 import Path
+try:
+    from urllib.parse import urlparse, unquote
+except ImportError:
+    from urllib import unquote
+    from urlparse import urlparse
+
 from gevent.pool import Pool
 from functools import partial
 from itertools import islice
 from collections import Counter
-from lib.file_handling import process_media, check_update, type_dc_type
-from lib.dir_handling import scan_dir
-from models import Media
-from app import db, app
-from api.appuser import get_current_user
+
+from . import get_uuid_unicode
+from ..config import basedir
+from .file_handling import process_media, check_update, type_dc_type
+from .dir_handling import scan_dir
+from ..models import Media
+from ..app import db, app
+from ..api.appuser import get_current_user
+
+from gevent import monkey
 
 logging.root.setLevel(logging.DEBUG)
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -47,7 +64,7 @@ def load_csv(in_file_path, metadata=None):
 
     media_objects = {m.path: m for m in Media.query.all()}
 
-    with open(in_file_path, "r") as in_f:
+    with io.open(in_file_path, "r") as in_f:
         reader = csv.DictReader(in_f)
         last_i = 0
         for i, l in enumerate(reader):
@@ -100,30 +117,50 @@ def load_csv(in_file_path, metadata=None):
     return stats.most_common()
 
 
+def get_api_client(current_user=None):
+    if current_user is None:
+        current_user = get_current_user()
+
+    return idigbio.json(
+        env="beta",
+        user=current_user.user_uuid,
+        password=current_user.auth_key
+    )
+
+
 def do_run_db():
+    monkey.patch_all()
     logging.info("DB Run Started")
-    p = Pool(50)
+    p = Pool(20)
 
     current_user = get_current_user()
     if current_user is None:
-        raise NotAuthorizedException
+        raise NotAuthorizedException()
+
+    api = get_api_client(current_user=current_user)
 
     last_i = 0
-    pm_no_update = partial(process_media, update_db=False)
+    pm_no_update = partial(process_media, update_db=False, api=api)
     media_query = db.session.query(Media).filter(
         db.or_(Media.status == None, Media.status != "uploaded")).filter(
         Media.appuser == current_user)  # noqa
     for i, m in enumerate(p.imap_unordered(pm_no_update, media_query)):
         last_i = i + 1
         db.session.add(m)
-        if i % 1000 == 0:
+        if i % 100 == 0:
             logging.debug("upload group {}".format(i))
             db.session.commit()
     logging.info("DB Run Finished: {} records processed".format(last_i))
     db.session.commit()
 
 
-def media_csv(period=None, out_file_name=None):
+def media_csv(**kwargs):
+    try:
+        return _media_csv(**kwargs)
+    except:
+        logging.exception("Media CSV error")
+
+def _media_csv(period=None, out_file_name=None):
     query = db.session.query(Media)
 
     last_date = None
@@ -138,17 +175,16 @@ def media_csv(period=None, out_file_name=None):
         query = query.filter(Media.status_date > (last_date))
 
     if out_file_name is None:
-        out_file_name = str(uuid.uuid4()) + ".csv"
+        out_file_name = get_uuid_unicode() + ".csv"
 
-    with open(
+    with io.open(
         os.path.join(
             app.config["USER_DATA"],
             out_file_name
         ),
-        "w",
-        encoding="utf-8"
+        "wb"
     ) as out_file:
-        writer = csv.writer(out_file)
+        writer = csv.writer(out_file, encoding="utf-8")
         writer.writerow([
             "idigbio:recordID",
             "ac:accessURI",
@@ -164,11 +200,16 @@ def media_csv(period=None, out_file_name=None):
         ])
 
         for m in query.all():
+            if m.media_type in type_dc_type:
+                dc_type = type_dc_type[m.media_type]
+            else:
+                dc_type = ""
+
             if m.status == "uploaded":
                 writer.writerow([
                     m.file_reference,
                     "http://media.idigbio.org/" + m.image_hash,
-                    type_dc_type[m.media_type],
+                    dc_type,
                     m.mime,
                     m.path,
                     "md5",
@@ -182,7 +223,7 @@ def media_csv(period=None, out_file_name=None):
                 writer.writerow([
                     m.file_reference,
                     "",
-                    type_dc_type[m.media_type],
+                    dc_type,
                     m.mime,
                     m.path,
                     "md5",
@@ -203,9 +244,9 @@ def do_create_media(directory, guid_type="uuid", guid_params=None,
     writer = None
     if not add_to_db:
         if out_file_name is None:
-            out_file_name = str(uuid.uuid4()) + ".csv"
+            out_file_name = get_uuid_unicode() + ".csv"
 
-        out_file = open(
+        out_file = io.open(
                         os.path.join(
                             app.config["USER_DATA"],
                             out_file_name

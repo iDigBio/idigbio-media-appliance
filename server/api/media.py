@@ -1,10 +1,14 @@
+from __future__ import absolute_import, print_function, division, unicode_literals
+
 import os
 import json
 import datetime
 
 from flask import Blueprint, request, g, jsonify
 from flask_restful import Api, Resource
-from models import Media
+from ..models import Media
+
+from .appuser import get_current_user
 
 media_api = Api(Blueprint("media_api", __name__))
 
@@ -22,7 +26,9 @@ class MediaAPI(Resource):
 
     @staticmethod
     def get():
-        from app import db
+        from ..app import db
+
+        current_user = get_current_user()
 
         try:
             o = int(request.args.get('offset', 0))
@@ -33,7 +39,7 @@ class MediaAPI(Resource):
             return res
 
         period = request.args.get('time_period', 'all')
-        query = db.session.query(Media)
+        query = db.session.query(Media).filter(Media.appuser == current_user)
 
         last_date = None
         if period == "day":
@@ -47,7 +53,7 @@ class MediaAPI(Resource):
             query = query.filter(Media.status_date > (last_date))
 
         return {
-            "count": Media.query.count(),
+            "count": db.session.query(Media).filter(Media.appuser == current_user).count(),
             "media": [
                 {
                     "id": media.id,
@@ -66,7 +72,7 @@ class MediaAPI(Resource):
 
     @staticmethod
     def post():
-        from app import db
+        from ..app import db
 
         if g.appuser is None:
             j = jsonify({"error": "Not Authorized"})
@@ -111,7 +117,7 @@ class MediaItemAPI(Resource):
 
     @staticmethod
     def get(media_id):
-        from app import db
+        from ..app import db
 
         media = Media.query.get_or_404(media_id)
 
@@ -134,13 +140,15 @@ class MediaStatusAPI(Resource):
 
     @staticmethod
     def get():
-        from app import db
+        from ..app import db
+
+        current_user = get_current_user()
 
         statuses = db.session.query(db.func.count('*').label(
-            "c"), Media.status).group_by(Media.status).all()
+            "c"), Media.status).filter(Media.appuser == current_user).group_by(Media.status).all()
 
         resp_d = {
-            "count": Media.query.count()
+            "count": db.session.query(Media).filter(Media.appuser == current_user).count()
         }
 
         for m in statuses:

@@ -1,6 +1,6 @@
-from config import SQLALCHEMY_DATABASE_URI
-from config import SQLALCHEMY_MIGRATE_REPO
-from app import db
+from .config import SQLALCHEMY_DATABASE_URI
+from .config import SQLALCHEMY_MIGRATE_REPO
+from .app import db
 
 
 def create_or_update_db():

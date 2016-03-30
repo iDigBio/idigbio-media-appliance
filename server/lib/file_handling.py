@@ -1,9 +1,12 @@
+from __future__ import absolute_import, print_function, division, unicode_literals
+
 import os
+import io
 import sys
 import hashlib
 import datetime
 
-from app import db
+from ..app import db
 
 file_types = {
     "jpg": ("images", "image/jpeg"),
@@ -48,7 +51,7 @@ def calcFileHash(f, op=True, return_size=False, read_size=2048):
         return md5, size
 
     if op:
-        with open(f, "rb") as fd:
+        with io.open(f, "rb") as fd:
             md5, size = do_hash(fd)
     else:
         md5, size = do_hash(f)
@@ -59,7 +62,7 @@ def calcFileHash(f, op=True, return_size=False, read_size=2048):
         return md5.hexdigest()
 
 
-def process_media(m, update_db=True):
+def process_media(m, update_db=True, api=None):
     try:
         if os.path.exists(m.path):
             h, size = calcFileHash(m.path, return_size=True)
@@ -76,10 +79,20 @@ def process_media(m, update_db=True):
             raise FileNotFoundError
 
         # Upload Media File
-
-        m.status = "uploaded"
-        m.status_date = datetime.datetime.now()
-        m.status_detail = ""
+        if api is None:
+            m.status = "uploaded"
+            m.status_date = datetime.datetime.now()
+            m.status_detail = ""
+        else:
+            res = api.upload(m.file_reference, m.path)
+            if res is None:
+                m.status = "failed"
+                m.status_date = datetime.datetime.now()
+                m.status_detail = ""
+            else:
+                m.status = "uploaded"
+                m.status_date = datetime.datetime.now()
+                m.status_detail = ""
 
         if update_db:
             db.session.add(m)
