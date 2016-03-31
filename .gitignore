@@ -60,6 +60,5 @@ target/
 .ipynb_checkpoints
 
 # Bower components
-server/static/components
-server/local.db
+idigbio_media_appliance/static/components
 node_modules
