@@ -67,7 +67,7 @@ test:
     # You can put test commands to be run here.  Use this to test that the
     # entry points work.
 
-    - idigbio_media_appliance --help
+    #- idigbio_media_appliance --help
 
   # You can also put a file called run_test.py in the recipe that will be run
   # at test time.
