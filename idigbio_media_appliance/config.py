@@ -5,7 +5,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 USER_DATA = appdirs.user_data_dir("media_appliance", "idigbio")
 
 if not os.path.exists(USER_DATA):
-    os.mkdirs(USER_DATA)
+    os.makedirs(USER_DATA)
 
 DATABASE_FILE = os.path.join(USER_DATA, "local.db")
 
