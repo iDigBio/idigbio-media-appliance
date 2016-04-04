@@ -24,9 +24,11 @@ setup(
     author=package_json["author"].split(" ")[0],
     author_email=package_json["author"].split(" ")[1][1:-1],
     packages=find_packages(exclude=['tests*']),
-    scripts=[
-        "bin/idigbio_media_appliance.py"
-    ],
+    entry_points={
+        "console_scripts": [
+            "idigbio_media_appliance=idigbio_media_appliance.__main__:main"
+        ],
+    },
     install_requires=[
         'Flask',
         'Flask-RESTful',
