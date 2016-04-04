@@ -4,5 +4,6 @@ Flask-SQLAlchemy
 alembic
 easygui
 appdirs
+gevent
 idigbio
 unicodecsv

@@ -154,13 +154,7 @@ def do_run_db():
     db.session.commit()
 
 
-def media_csv(**kwargs):
-    try:
-        return _media_csv(**kwargs)
-    except:
-        logging.exception("Media CSV error")
-
-def _media_csv(period=None, out_file_name=None):
+def media_csv(period=None, out_file_name=None):
     query = db.session.query(Media)
 
     last_date = None

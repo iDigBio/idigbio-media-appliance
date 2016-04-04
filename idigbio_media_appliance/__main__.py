@@ -5,6 +5,7 @@ import webbrowser
 
 from .app import init_routes, create_or_update_db, app
 
+
 def main():
     dbg = "True" == os.getenv("DEBUG", "False")
     init_routes()
