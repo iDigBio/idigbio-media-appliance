@@ -34,6 +34,7 @@ setup(
         'Flask-RESTful',
         'Flask-SQLAlchemy',
         'alembic',
+        'gevent',
         'easygui',
         'appdirs  ',
         'unicodecsv',
