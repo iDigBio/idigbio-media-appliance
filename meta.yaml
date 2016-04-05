@@ -1,6 +1,6 @@
 package:
   name: idigbio-media-appliance
-  version: "2.0.1"
+  version: "2.0.2"
 
 source:
   fn: idigbio-media-appliance-2.0.1.tar.gz
