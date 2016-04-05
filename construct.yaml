@@ -1,5 +1,5 @@
 name: iDigBio Media Appliance
-version: 2.0.1
+version: 2.0.2
 
 channels:
   - http://repo.continuum.io/pkgs/free/
