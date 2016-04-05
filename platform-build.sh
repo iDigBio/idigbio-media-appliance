@@ -11,6 +11,9 @@ packages='pytest-cov python-editor aniso8601 blinker flask-restful flask-sqlalch
 for p in $packages; do
     rm ~/miniconda3/conda-bld/linux-64/$p*
     conda skeleton pypi $p;
+    if [ "$p" = "flask-restful" ]; then
+        sed -i 's/\[paging\]//' flask-restful/meta.yaml;
+    fi
     conda build --no-test $p;
     conda convert --platform all `ls ~/miniconda3/conda-bld/linux-64/$p*` -o ~/conda-builds/platform-pack/;
 done
