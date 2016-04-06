@@ -1,6 +1,6 @@
 {
   "name": "idigbio-media-appliance",
-  "version": "0.0.0",
+  "version": "2.0.3",
   "directory": "public/components",
   "dependencies": {
     "underscore": "*",
