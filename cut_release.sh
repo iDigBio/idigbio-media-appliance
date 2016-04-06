@@ -34,4 +34,7 @@ nv=$(./versioning.py --no-human bump $1)
 
 echo "Creating new $1 release at version $nv"
 
+git commit -am "Creating new $1 release at version $nv."
 git tag $nv
+
+python setup.py sdist bdist_wheel upload
