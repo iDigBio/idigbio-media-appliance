@@ -9,7 +9,10 @@ import logging
 import tempfile
 import os
 
-dry = False
+options = {
+    "dry_run": False,
+    "human": True
+}
 
 
 def get_version():
@@ -23,7 +26,8 @@ def get_version():
         if version is None:
             version = vs
         elif semver.compare(vs, version) > 0:
-            click.echo("{} had larger version. {} > {}".format(f, vs, version))
+            if options["human"]:
+                click.echo("{} had larger version. {} > {}".format(f, vs, version))
             version = vs
 
     for f in ["meta.yaml", "construct.yaml"]:
@@ -38,15 +42,17 @@ def get_version():
         if version is None:
             version = vs
         elif semver.compare(vs, version) > 0:
-            click.echo("{} had larger version. {} > {}".format(f, vs, version))
+            if options["human"]:
+                click.echo("{} had larger version. {} > {}".format(f, vs, version))
             version = vs
 
     return version
 
 
 def write_version(version):
-    if dry:
-        click.echo("Skipped write of version {} due to dry run flag.".format(version))  # noqa
+    if options["dry_run"]:
+        if options["human"]:
+            click.echo("Skipped write of version {} due to dry run flag.".format(version))  # noqa
         return False
 
     for f in ["package.json", "bower.json"]:
@@ -76,15 +82,18 @@ def write_version(version):
 
 @click.group()
 @click.option('--dry-run/--no-dry-run', default=False)
-def version(dry_run):
-    global dry
-    dry = dry_run
+@click.option('--human/--no-human', default=True)
+def version(**kwargs):
+    options.update(kwargs)
 
 
 @version.command()
 def get():
     v = get_version()
-    click.echo("Package version is {}".format(v))
+    if options["human"]:
+        click.echo("Package version is {}".format(v))
+    else:
+        click.echo(v)
 
 
 @version.group()
@@ -96,7 +105,10 @@ def bump():
 def major():
     v = get_version()
     nv = semver.bump_major(v)
-    click.echo("{} -> {}".format(v, nv))
+    if options["human"]:
+        click.echo("{} -> {}".format(v, nv))
+    else:
+        click.echo(nv)
     write_version(nv)
 
 
@@ -104,7 +116,10 @@ def major():
 def minor():
     v = get_version()
     nv = semver.bump_minor(v)
-    click.echo("{} -> {}".format(v, nv))
+    if options["human"]:
+        click.echo("{} -> {}".format(v, nv))
+    else:
+        click.echo(nv)
     write_version(nv)
 
 
@@ -112,7 +127,10 @@ def minor():
 def patch():
     v = get_version()
     nv = semver.bump_patch(v)
-    click.echo("{} -> {}".format(v, nv))
+    if options["human"]:
+        click.echo("{} -> {}".format(v, nv))
+    else:
+        click.echo(nv)
     write_version(nv)
 
 if __name__ == '__main__':
