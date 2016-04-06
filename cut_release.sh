@@ -31,3 +31,7 @@ require_clean_work_tree () {
 require_clean_work_tree
 
 nv=$(./versioning.py --no-human bump $1)
+
+echo "Creating new $1 release at version $nv"
+
+git tag $nv
