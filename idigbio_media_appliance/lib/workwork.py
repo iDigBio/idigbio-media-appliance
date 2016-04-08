@@ -153,6 +153,19 @@ def do_run_db():
     logging.info("DB Run Finished: {} records processed".format(last_i))
     db.session.commit()
 
+    out_file_name = media_csv()
+    out_file = os.path.join(
+        app.config["USER_DATA"],
+        out_file_name
+    )
+    api.upload(
+        "http://api.idigbio.org/v1/recordsets/{}".format(
+            current_user.user_uuid
+        ),
+        out_file,
+        media_type="datasets"
+    )
+
 
 def media_csv(period=None, out_file_name=None):
     query = db.session.query(Media)
