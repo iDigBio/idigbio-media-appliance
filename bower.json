@@ -1,11 +1,11 @@
 {
-  "version": "2.0.4",
+  "version": "2.0.5",
+  "name": "idigbio-media-appliance",
   "dependencies": {
-    "underscore": "*",
     "bootstrap": "~>3",
+    "underscore": "*",
     "jquery": "*"
   },
-  "name": "idigbio-media-appliance",
   "ignore": [
     "**/.*",
     "node_modules",
