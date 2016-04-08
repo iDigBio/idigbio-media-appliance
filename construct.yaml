@@ -5,4 +5,4 @@ name: iDigBioMediaAppliance
 specs:
 - python 3.5*
 - idigbio-media-appliance
-version: 2.0.3
+version: 2.0.4
