@@ -15,7 +15,8 @@ from ..api.appuser import get_current_user
 from . import get_uuid_unicode
 
 guid_mode = {
-    "regex": lambda regex, tmpl, path: regex.match(path).expand(tmpl),
+    "filename": lambda tmpl, path: re.match("^.*/([^/]+)$", path).expand(tmpl),
+    "fullpath": lambda tmpl, path: re.match("(.*)", path).expand(tmpl),
     "uuid": lambda path: get_uuid_unicode(),
     "hash": lambda path: calcFileHash(path),
 }
@@ -39,7 +40,7 @@ def simple_walk(directory):
 
 
 def scan_dir(directory, guid_type="uuid", guid_params=None, recursive=True):
-    if guid_type == "regex":
+    if guid_type == "filename" or guid_type == "fullpath":
         ref_func = partial(re.compile(guid_params[0]), guid_params[1])
     else:
         ref_func = guid_mode[guid_type]

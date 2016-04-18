@@ -25,7 +25,7 @@ def json_in_out(send_json, accept_json):
 @pytest.fixture
 def app(request):
     os.environ["DATABASE_URL"] = "sqlite://"
-    from app import init_routes, app as flask_app, db
+    from ..app import init_routes, app as flask_app, db
     db.drop_all()
     db.create_all()
     db.session.commit()
