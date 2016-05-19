@@ -258,10 +258,9 @@ def do_create_media(directory, guid_type="uuid", guid_params=None,
                             app.config["USER_DATA"],
                             out_file_name
                         ),
-                        "w",
-                        encoding="utf-8"
+                        "wb"
                     )
-        writer = csv.writer(out_file)
+        writer = csv.writer(out_file, encoding="utf-8")
         writer.writerow(["idigbio:recordID", "ac:accessURI"])
 
     last_i = 0
