@@ -3,3 +3,4 @@ pytest-flask
 pytest-sugar
 pytest-cov
 semver
+click
