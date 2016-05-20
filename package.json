@@ -10,7 +10,7 @@
     "reactify": "^1.1.1"
   },
   "name": "idigbio-media-appliance",
-  "repository": "git://github.com/idigbio/idigbio-media-appliance",
+  "repository": "http://github.com/idigbio/idigbio-media-appliance",
   "description": "iDigBio Media Appliance",
   "author": "Alex Thompson <godfoder@acis.ufl.edu>",
   "contributors": [

@@ -100,9 +100,17 @@ def update_meta_source(url, etag):
 
 
 def get_pypi_hash(version):
-    url = "https://pypi.python.org/packages/source/i/idigbio-media-appliance/idigbio-media-appliance-{}.tar.gz".format(version)
-    r = requests.head(url)
-    return (url, r.headers["ETag"].replace("\"", ""))
+    r = requests.get("https://pypi.python.org/pypi/idigbio-media-appliance/json")
+    o = r.json()
+    url = None
+    etag = None
+    for rel in o["releases"][version]:
+        if rel["packagetype"] == "sdist":
+            url = rel["url"]
+            etag = rel["md5_digest"]
+            break
+
+    return (url, etag)
 
 
 @click.group()
