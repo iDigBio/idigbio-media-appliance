@@ -33,9 +33,9 @@ requirements:
   - unicodecsv
   - idigbio
 source:
-  fn: idigbio-media-appliance-2.0.8.tar.gz
-  md5: 7902ffe9b8ee07c7421a65bbe031cd04
-  url: https://pypi.python.org/packages/d0/63/667cdf449af4215b7d4801d8c9d99e85f0fa66e8a41fcb4c2bd9414f9c32/idigbio-media-appliance-2.0.8.tar.gz
+  fn: idigbio-media-appliance-2.1.0.tar.gz
+  md5: e05d302194c15de581625b963abdbc2c
+  url: https://pypi.python.org/packages/2c/95/67dda937be2d8c13c9bba51519f8953b85fe67baa82114b1daade3759519/idigbio-media-appliance-2.1.0.tar.gz
 test:
   commands: null
   imports:
