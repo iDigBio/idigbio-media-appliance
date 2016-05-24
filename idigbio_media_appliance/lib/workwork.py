@@ -122,7 +122,7 @@ def get_api_client(current_user=None):
         current_user = get_current_user()
 
     return idigbio.json(
-        env="beta",
+        env="prod",
         user=current_user.user_uuid,
         password=current_user.auth_key
     )
