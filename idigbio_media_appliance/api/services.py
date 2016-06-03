@@ -9,14 +9,17 @@ import easygui
 import traceback
 import uuid
 import re
+import zipfile
+import datetime
 
 from flask import Blueprint, request, current_app, jsonify, send_from_directory, redirect  # noqa
 
 from ..models import Media
 
 from ..lib import get_uuid_unicode
-from ..lib.workwork import do_run_db, do_create_media, combined, combined_load, media_csv
+from ..lib.workwork import do_run_db, do_create_media, combined, combined_load, media_csv, get_api_client
 from ..lib.dir_handling import guid_mode
+from ..api.appuser import get_current_user
 
 
 service_api = Blueprint("service_api", __name__)
@@ -271,3 +274,32 @@ def fileprompt():
     return jsonify({
         "path": easygui.filesavebox(default="media.csv")
     })
+
+@service_api.route("/debug_pack")
+def debug_dump():
+    current_user = get_current_user()
+
+    with zipfile.ZipFile(os.path.join(current_app.config["USER_DATA"], "debug.zip"), "w", zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(current_app.config["USER_DATA"]):
+            for file in files:
+                if file == "debug.zip":
+                    continue
+
+                zf.write(os.path.join(root,file))
+
+        zf.close()
+
+    api = get_api_client()
+
+    r = api.upload(
+        "{}_{}_debug.zip".format(
+            current_user.user_uuid,
+            datetime.datetime.now().isoformat()
+        ),
+        os.path.join(current_app.config["USER_DATA"], "debug.zip"),
+        media_type="debugfile"
+    )
+    if r is not None:
+        return jsonify(r)
+    else:
+        return send_from_directory(current_app.config["USER_DATA"], "debug.zip")

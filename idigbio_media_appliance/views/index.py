@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function, division, unicode_literals
 
-from flask import render_template, Blueprint
+from flask import render_template, Blueprint, current_app
 
 from ..models import AppUser
 
@@ -11,4 +11,4 @@ index_view = Blueprint('index', __name__)
 def index():
     users = AppUser.query.all()
 
-    return render_template('index.html', users=users)
+    return render_template('index.html', users=users, config=current_app.config)

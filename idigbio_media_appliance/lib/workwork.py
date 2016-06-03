@@ -121,11 +121,12 @@ def get_api_client(current_user=None):
     if current_user is None:
         current_user = get_current_user()
 
-    return idigbio.json(
+    api = idigbio.json(
         env="prod",
         user=current_user.user_uuid,
         password=current_user.auth_key
     )
+    return api
 
 
 def do_run_db():

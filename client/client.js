@@ -1,7 +1,7 @@
 window.$ = jQuery = require('jquery');
 var React = require("react");
 var ReactDOM = require("react-dom");
-require('../server/static/components/bootstrap/dist/js/bootstrap.min.js');
+require('../idigbio_media_appliance/static/components/bootstrap/dist/js/bootstrap.min.js');
 require("bootstrap-notify");
 
 var hash = window.location.hash.substring(1);
@@ -22,6 +22,7 @@ document.save_failure = false;
 var MainUI = require('./lib/index.js');
 var UserIndicator = require('./lib/user.js');
 var WarningIndicator = require('./lib/warning.js');
+var DebugLink = require('./lib/debug.js').DebugLink;
 
 document.setConfig = function(c) {
     // Optimistically re-render to avoid having to round trip to server before inputs change
@@ -149,6 +150,12 @@ document.render = function(){
         ReactDOM.render(
             <UserIndicator />,
             document.querySelector("#userindicator")
+        );
+
+
+        ReactDOM.render(
+            <DebugLink />,
+            document.querySelector("#debuglink")
         );
 
 }
