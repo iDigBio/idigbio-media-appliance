@@ -17,7 +17,9 @@ options = {
 
 
 def get_version():
-    version = None
+
+    from idigbio_media_appliance.version import VERSION
+    version = VERSION
 
     for f in ["package.json", "bower.json"]:
         with io.open(f, "r") as jf:
@@ -55,6 +57,11 @@ def write_version(version):
         if options["human"]:
             click.echo("Skipped write of version {} due to dry run flag.".format(version))  # noqa
         return False
+
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tfh:
+        tfp = tfh.name
+        tfh.write("VERSION = \"{}\"".format(version))
+    os.rename(tfp, "idigbio_media_appliance/version.py")
 
     for f in ["package.json", "bower.json"]:
         with io.open(f, "r") as jf:

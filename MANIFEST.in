@@ -1,4 +1,3 @@
 recursive-include idigbio_media_appliance/static *
 recursive-include idigbio_media_appliance/templates *
 include README.rst
-include package.json
