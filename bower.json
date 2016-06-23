@@ -1,15 +1,15 @@
 {
-  "name": "idigbio-media-appliance",
-  "dependencies": {
-    "jquery": "*",
-    "bootstrap": "~>3",
-    "underscore": "*"
-  },
+  "directory": "public/components",
+  "version": "2.2.1",
   "ignore": [
     "**/.*",
     "node_modules",
     "components"
   ],
-  "directory": "public/components",
-  "version": "2.2.0"
+  "name": "idigbio-media-appliance",
+  "dependencies": {
+    "bootstrap": "~>3",
+    "underscore": "*",
+    "jquery": "*"
+  }
 }
