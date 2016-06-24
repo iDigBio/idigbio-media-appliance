@@ -1,12 +1,12 @@
 {
+  "name": "idigbio-media-appliance",
+  "version": "2.2.2",
   "directory": "public/components",
-  "version": "2.2.1",
   "ignore": [
     "**/.*",
     "node_modules",
     "components"
   ],
-  "name": "idigbio-media-appliance",
   "dependencies": {
     "bootstrap": "~>3",
     "underscore": "*",
