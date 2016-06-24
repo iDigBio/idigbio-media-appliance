@@ -216,7 +216,7 @@ def media_csv(period=None, out_file_name=None):
             if m.status == "uploaded":
                 writer.writerow([
                     m.file_reference,
-                    "http://media.idigbio.org/" + m.image_hash,
+                    "https://api.idigbio.org/v2/media/" + m.image_hash,
                     dc_type,
                     m.mime,
                     m.path,
