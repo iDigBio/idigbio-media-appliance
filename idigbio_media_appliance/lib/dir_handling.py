@@ -41,7 +41,7 @@ def simple_walk(directory):
 
 def scan_dir(directory, guid_type="uuid", guid_params=None, recursive=True):
     if guid_type == "filename" or guid_type == "fullpath":
-        ref_func = partial(re.compile(guid_params[0]), guid_params[1])
+        ref_func = partial(guid_mode[guid_type], guid_params[0])
     else:
         ref_func = guid_mode[guid_type]
 
