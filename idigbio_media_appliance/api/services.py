@@ -29,6 +29,8 @@ tasks = {}
 
 p = None
 
+multiprocessing.set_start_method('spawn')
+
 
 @service_api.route("/shutdown")
 def shutdown():
