@@ -5,6 +5,7 @@ import io
 import sys
 import hashlib
 import datetime
+import logging
 
 from ..app import db
 
@@ -84,7 +85,9 @@ def process_media(m, update_db=True, api=None):
             m.status_date = datetime.datetime.now()
             m.status_detail = ""
         else:
+            logging.debug("Start post for %r", m.path)
             res = api.upload(m.file_reference, m.path)
+            logging.debug("Finished post for %r got back %r", m.path, res)
             if res is None:
                 m.status = "failed"
                 m.status_date = datetime.datetime.now()
