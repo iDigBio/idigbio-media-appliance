@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function, division, unicode_litera
 import pytest
 import os
 import json
+import traceback
 
 from flask import url_for
 
@@ -32,6 +33,7 @@ def app(request):
     try:
         init_routes()
     except:  # can only initialize apps once
+        #traceback.print_exc()
         pass
     flask_app.debug = True
 

@@ -1,13 +1,18 @@
 from __future__ import absolute_import, print_function, division, unicode_literals
 
 import os
+import sys
 import webbrowser
 import subprocess
 import logging
-
+import multiprocessing
 
 
 def main():
+    # This probably means that OSX will only work on python 3.5 and higher
+    if sys.version_info >= (3,4):
+        multiprocessing.set_start_method('spawn')
+
     dbg = "True" == os.getenv("DEBUG", "False")
 
     try:
