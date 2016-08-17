@@ -6,6 +6,7 @@ import re
 import datetime
 
 from functools import partial
+from pathlib import Path
 
 from .file_handling import file_types, calcFileHash, check_update
 
@@ -14,9 +15,10 @@ from ..api.appuser import get_current_user
 
 from . import get_uuid_unicode
 
+# how to handle paths?
 guid_mode = {
-    "filename": lambda tmpl, path: re.match("^.*/([^/]+)$", path).expand(tmpl),
-    "fullpath": lambda tmpl, path: re.match("(.*)", path).expand(tmpl),
+    "filename": lambda pref, path: pref + str(Path(path).name),
+    "fullpath": lambda pref, path: pref + str(Path(path)),
     "uuid": lambda path: get_uuid_unicode(),
     "hash": lambda path: calcFileHash(path),
 }

@@ -70,7 +70,7 @@ def process_media(m, update_db=True, api=None):
             m.image_hash = h
 
             for k in file_types:
-                if m.path.endswith(k):
+                if m.path.lower().endswith(k):
                     m.media_type, m.mime = file_types[k]
                     break
             else:

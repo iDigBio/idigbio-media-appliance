@@ -7,3 +7,5 @@ appdirs
 gevent
 idigbio
 unicodecsv
+enum34 ; python_version <= '2.7'
+pathlib ; python_version <= '2.7'

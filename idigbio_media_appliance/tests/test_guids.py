@@ -21,7 +21,7 @@ def test_hash(datadir):
 def test_prefix_fullpath(datadir):
     prefix = "test:"
     path = datadir + "/images/image1.jpg"
-    params = (prefix + "\\1", path)
+    params = (prefix, path)
 
     g = guid_mode["fullpath"](*params)
     assert g == prefix + path
@@ -30,7 +30,7 @@ def test_prefix_fullpath(datadir):
 def test_prefix_filename(datadir):
     prefix = "test:"
     path = datadir + "/images/image1.jpg"
-    params = (prefix + "\\1", path)
+    params = (prefix, path)
 
     g = guid_mode["filename"](*params)
     assert g == prefix + os.path.basename(path)
