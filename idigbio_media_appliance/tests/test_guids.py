@@ -5,6 +5,7 @@ from ..lib.dir_handling import guid_mode
 import uuid
 import re
 import os
+import pathlib
 
 
 def test_uuid(datadir):
@@ -20,17 +21,17 @@ def test_hash(datadir):
 
 def test_prefix_fullpath(datadir):
     prefix = "test:"
-    path = datadir + "/images/image1.jpg"
-    params = (prefix, path)
+    path = pathlib.Path(datadir, "/images/image1.jpg")
+    params = (prefix, str(path))
 
     g = guid_mode["fullpath"](*params)
-    assert g == prefix + path
+    assert g == prefix + str(path)
 
 
 def test_prefix_filename(datadir):
     prefix = "test:"
-    path = datadir + "/images/image1.jpg"
-    params = (prefix, path)
+    path = pathlib.Path(datadir, "/images/image1.jpg")
+    params = (prefix, str(path))
 
     g = guid_mode["filename"](*params)
-    assert g == prefix + os.path.basename(path)
+    assert g == prefix + str(path.name)
