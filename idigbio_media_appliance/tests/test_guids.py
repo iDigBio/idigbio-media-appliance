@@ -21,7 +21,7 @@ def test_hash(datadir):
 
 def test_prefix_fullpath(datadir):
     prefix = "test:"
-    path = pathlib.Path(datadir, "/images/image1.jpg")
+    path = pathlib.Path(datadir, "images", "image1.jpg")
     params = (prefix, str(path))
 
     g = guid_mode["fullpath"](*params)
@@ -30,7 +30,7 @@ def test_prefix_fullpath(datadir):
 
 def test_prefix_filename(datadir):
     prefix = "test:"
-    path = pathlib.Path(datadir, "/images/image1.jpg")
+    path = pathlib.Path(datadir, "images", "image1.jpg")
     params = (prefix, str(path))
 
     g = guid_mode["filename"](*params)
