@@ -6,10 +6,10 @@
   ],
   "dependencies": {
     "jquery": "*",
-    "underscore": "*",
-    "bootstrap": "~>3"
+    "bootstrap": "~>3",
+    "underscore": "*"
   },
+  "version": "2.4.0",
   "name": "idigbio-media-appliance",
-  "directory": "public/components",
-  "version": "2.3.0"
+  "directory": "public/components"
 }
