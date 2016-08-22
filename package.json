@@ -1,27 +1,27 @@
 {
-  "version": "2.4.0",
+  "dependencies": {
+    "bootstrap-notify": "^3.1.3",
+    "react-dom": "^0.14.7",
+    "jquery": "^2.2.1",
+    "reactify": "^1.1.1",
+    "browserify": "^13.0.0",
+    "react": "^0.14.7",
+    "bootstrap": "^3.3.6"
+  },
+  "name": "idigbio-media-appliance",
   "engines": {
     "node": "*"
   },
+  "author": "Alex Thompson <godfoder@acis.ufl.edu>",
   "contributors": [
     {
       "name": "Alex Thompson",
       "email": "godfoder@acis.ufl.edu"
     }
   ],
-  "author": "Alex Thompson <godfoder@acis.ufl.edu>",
-  "dependencies": {
-    "reactify": "^1.1.1",
-    "react": "^0.14.7",
-    "browserify": "^13.0.0",
-    "react-dom": "^0.14.7",
-    "jquery": "^2.2.1",
-    "bootstrap-notify": "^3.1.3",
-    "bootstrap": "^3.3.6"
-  },
-  "name": "idigbio-media-appliance",
-  "devDependencies": {},
   "repository": "http://github.com/idigbio/idigbio-media-appliance",
   "keywords": [],
+  "version": "2.4.1",
+  "devDependencies": {},
   "description": "iDigBio Media Appliance"
 }
