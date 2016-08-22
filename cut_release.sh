@@ -34,11 +34,11 @@ nv=$(./versioning.py --no-human bump $1)
 
 echo "Creating new $1 release at version $nv"
 
+python setup.py sdist bdist_wheel upload &&
+./versioning.py --no-human pypi &&
 git commit -am "Creating new $1 release at version $nv." &&
 git tag $nv &&
 git push --tags &&
-python setup.py sdist bdist_wheel upload &&
-./versioning.py --no-human pypi &&
 conda build . --no-test &&
 conda convert --platform all ~/anaconda3/conda-bld/linux-64/idigbio-media-appliance-$nv-py35_0.tar.bz2 -o ~/conda-builds/platform-pack/ &&
 
