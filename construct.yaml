@@ -4,5 +4,6 @@ channels:
 name: iDigBioMediaAppliance
 specs:
 - python 3.5*
+- conda
 - idigbio-media-appliance
 version: 2.4.0
