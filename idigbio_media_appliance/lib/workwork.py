@@ -64,7 +64,7 @@ def load_csv(in_file_path, metadata=None):
 
     media_objects = {m.path: m for m in Media.query.all()}
 
-    with io.open(in_file_path, "r") as in_f:
+    with io.open(in_file_path, "rb") as in_f:
         reader = csv.DictReader(in_f)
         last_i = 0
         for i, l in enumerate(reader):
