@@ -6,4 +6,4 @@ specs:
 - python 3.5*
 - conda
 - idigbio-media-appliance
-version: 2.4.3
+version: 2.4.4
