@@ -6,6 +6,7 @@ import sys
 import hashlib
 import datetime
 import logging
+import json
 
 from ..app import db
 
@@ -33,6 +34,9 @@ def check_update(m, p, current_user, guid_type=None):
     m.status_detail = m.image_hash
     m.image_hash = h
     m.appuser = current_user
+    props = json.loads(m.props)
+    props["dc:rights"] = current_user.config["license"]
+    m.props = json.dumps(props)
     if guid_type == "hash":
         m.file_reference = h
     return m

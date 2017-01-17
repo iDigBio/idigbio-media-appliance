@@ -78,7 +78,7 @@ def load_csv(in_file_path, metadata=None):
                     if m is not None:
                         path = str(Path(m.groups()[0]))
                     else:
-                        path = str(Path)
+                        path = str(Path(pp))
 
                 else:
                     path = l["idigbio:OriginalFileName"]
@@ -178,6 +178,11 @@ def do_run_db():
 def media_csv(period=None, out_file_name=None):
     query = db.session.query(Media)
 
+    current_user = get_current_user()
+    if current_user is None:
+        raise NotAuthorizedException()
+    config = json.loads(current_user.config)
+
     last_date = None
     if period == "day":
         last_date = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -205,6 +210,7 @@ def media_csv(period=None, out_file_name=None):
             "ac:accessURI",
             "dc:type",
             "dc:format",
+            "dc:rights",
             "idigbio:OriginalFileName",
             "ac:hashFunction",
             "ac:hashValue",
@@ -220,16 +226,22 @@ def media_csv(period=None, out_file_name=None):
             else:
                 dc_type = ""
 
+            props = json.loads(m.props)
+            rights = props.get("dc:rights", config["license"])
+            if "dc:rights" in m.props:
+                del props["dc:rights"]
+
             if m.status == "uploaded":
                 writer.writerow([
                     m.file_reference,
                     "https://api.idigbio.org/v2/media/" + m.image_hash,
                     dc_type,
                     m.mime,
+                    rights,
                     m.path,
                     "md5",
                     m.image_hash,
-                    m.props,
+                    json.dumps(props),
                     m.status,
                     m.status_date,
                     m.status_detail
@@ -240,10 +252,11 @@ def media_csv(period=None, out_file_name=None):
                     "",
                     dc_type,
                     m.mime,
+                    rights,
                     m.path,
                     "md5",
                     m.image_hash,
-                    m.props,
+                    json.dumps(props),
                     m.status,
                     m.status_date,
                     m.status_detail
@@ -269,7 +282,7 @@ def do_create_media(directory, guid_type="uuid", guid_params=None,
                         "wb"
                     )
         writer = csv.writer(out_file, encoding="utf-8")
-        writer.writerow(["idigbio:recordID", "ac:accessURI"])
+        writer.writerow(["idigbio:recordID", "ac:accessURI", "dc:rights"])
 
     last_i = 0
     for i, m in enumerate(scan_dir(directory, guid_type=guid_type, guid_params=guid_params, recursive=recursive)):  # noqa
@@ -277,7 +290,8 @@ def do_create_media(directory, guid_type="uuid", guid_params=None,
         if add_to_db:
             db.session.add(m)
         else:
-            writer.writerow([m.file_reference, Path(m.path).as_uri()])
+            props = json.loads(m.props)
+            writer.writerow([m.file_reference, Path(m.path).as_uri(), props.get("dc:rights")])
 
         if i % 1000 == 0:
             logging.debug("scan group {}".format(i))

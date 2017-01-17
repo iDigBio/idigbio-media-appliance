@@ -111,6 +111,21 @@ module.exports = React.createClass({
                     </div>
 
                     <div className="form-group">
+                        <label className="col-md-3 control-label">Image <a href="http://creativecommons.org/licenses/" target="_blank">License</a> *</label>
+                        <div className="col-md-9">
+                            <select id="license" name="license" className="form-control" rel="tooltip"
+                            data-title='Select the license you want to associate with the images you upload.'
+                            value={document.config.license} onChange={document.formPropChange}>
+                                <option value="CC0">CC0</option>
+                                <option value="CC BY">CC BY</option>
+                                <option value="CC BY-SA">CC BY-SA</option>
+                                <option value="CC BY-NC">CC BY-NC</option>
+                                <option value="CC BY-NC-SA">CC BY-NC-SA</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="form-group">
                         <label className="col-md-3 control-label"><a href="https://www.idigbio.org/sites/default/files/iDigBioGuidGuideForProviders_v1.pdf" target="_blank">GUID</a> Syntax *</label>
                         <div className="col-md-9">
                             <select id="guid_syntax" name="guid_syntax" className="form-control" value={document.config.guid_syntax} onChange={this.guidSyntaxChange} placeholder="Put in the directory path containing all your images." rel="tooltip" data-title="GUID can be constructed by hashing from media record, or contructed by combining the GUID Prefix with either the file name or the full fie path.">

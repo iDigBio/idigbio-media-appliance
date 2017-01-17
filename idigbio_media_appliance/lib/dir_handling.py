@@ -1,9 +1,7 @@
 from __future__ import absolute_import, print_function, division, unicode_literals
 
 import os
-import uuid
-import re
-import datetime
+import json
 
 from functools import partial
 from pathlib import Path
@@ -50,6 +48,7 @@ def scan_dir(directory, guid_type="uuid", guid_params=None, recursive=True):
     current_user = get_current_user()
     if current_user is None:
         raise NotAuthorizedException()
+    config = json.loads(current_user.config)
 
     if os.path.exists(directory):
 
@@ -64,6 +63,9 @@ def scan_dir(directory, guid_type="uuid", guid_params=None, recursive=True):
             else:
                 m = Media(path=p, file_reference=ref_func(p),
                           appuser=current_user)
+                props = {}
+                props["dc:rights"] = config["license"]
+                m.props = json.dumps(props)
 
             yield m
     else:
