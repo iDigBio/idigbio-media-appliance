@@ -111,6 +111,37 @@ class MediaAPI(Resource):
             "status_detail": media.status_detail
         }
 
+    @staticmethod
+    def delete():
+        from ..app import db
+        current_user = get_current_user()
+
+        b = request.get_json()
+
+        period = b.get('time_period', 'all')
+        status = b.get("status")
+        query = db.session.query(Media).filter(Media.appuser == current_user).filter(Media.status == status)
+
+
+        last_date = None
+        if period == "day":
+            last_date = datetime.datetime.now() - datetime.timedelta(days=1)
+        elif period == "week":
+            last_date = datetime.datetime.now() - datetime.timedelta(days=7)
+        elif period == "month":
+            last_date = datetime.datetime.now() - datetime.timedelta(days=30)
+
+        if last_date is not None:
+            query = query.filter(Media.status_date > (last_date))
+
+        for m in query:
+            db.session.delete(m)
+        db.session.commit()
+
+        return ('', 204)
+
+
+
 
 @media_api.resource("/media/<int:media_id>")
 class MediaItemAPI(Resource):

@@ -492,6 +492,62 @@ module.exports = React.createClass({displayName: "exports",
             }
         });
     },
+    purgeMissing: function(e) {
+        var self = this;
+        $.ajax({
+            type: "DELETE",
+            url: "/api/media",
+            data: JSON.stringify({ "time_period": self.props.period, "status": "missing" }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                $.notify({
+                    "message": "Missing files purged for " + self.props.period + "."
+                },{
+                    "type": "info"
+                });
+
+                document.render();
+            },
+            error: function(errMsg) {
+                $.notify({
+                    "message": "Missing purge failed."
+                },{
+                    "type": "danger"
+                });
+
+                document.render();
+            }
+        });
+    },
+    purgeFailed: function(e) {
+        var self = this;
+        $.ajax({
+            type: "DELETE",
+            url: "/api/media",
+            data: JSON.stringify({ "time_period": self.props.period, "status": "failed" }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                $.notify({
+                    "message": "Failed files purged for " + self.props.period + "."
+                },{
+                    "type": "info"
+                });
+
+                document.render();
+            },
+            error: function(errMsg) {
+                $.notify({
+                    "message": "Failed purge failed."
+                },{
+                    "type": "danger"
+                });
+
+                document.render();
+            }
+        });
+    },
     componentWillUnmount: function(){
         $.each(this.state.timeouts,function(k, v){
             clearTimeout(v);
@@ -635,7 +691,9 @@ module.exports = React.createClass({displayName: "exports",
                             "Failed ", React.createElement("span", {className: "badge"}, this.state.status.failed || "0")
                         )
                     ), 
-                    button
+                    button, React.createElement("br", null), 
+                    React.createElement("button", {className: "btn btn-warning", onClick: this.purgeMissing}, "Purge Missing"), React.createElement("br", null), 
+                    React.createElement("button", {className: "btn btn-danger", onClick: this.purgeFailed}, "Purge Failed"), React.createElement("br", null)
                 ), 
                 React.createElement("div", {className: "col-md-9 text-center"}, 
                     React.createElement("div", {className: "row"}, 
