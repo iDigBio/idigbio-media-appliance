@@ -5,9 +5,10 @@ import logging
 
 import io
 import unicodecsv as csv
-import uuid
 import json
 import idigbio
+import re
+import datetime
 
 try:
     from pathlib import Path
@@ -21,11 +22,9 @@ except ImportError:
 
 from gevent.pool import Pool
 from functools import partial
-from itertools import islice
 from collections import Counter
 
-from . import get_uuid_unicode
-from ..config import basedir
+from . import get_uuid_unicode, NotAuthorizedException
 from .file_handling import process_media, check_update, type_dc_type
 from .dir_handling import scan_dir
 from ..models import Media
@@ -60,9 +59,11 @@ def load_csv(in_file_path, metadata=None):
 
     current_user = get_current_user()
     if current_user is None:
-        raise NotAuthorizedException
+        raise NotAuthorizedException()
 
     media_objects = {m.path: m for m in Media.query.all()}
+
+    drive_match = re.compile("/([A-Za-z]:.*)")
 
     with io.open(in_file_path, "rb") as in_f:
         reader = csv.DictReader(in_f)
@@ -72,7 +73,13 @@ def load_csv(in_file_path, metadata=None):
             try:
                 a_uri = l.get("ac:accessURI", "")
                 if a_uri.startswith("file:///"):
-                    path = os.path.abspath(unquote(urlparse(a_uri).path))
+                    pp = unquote(urlparse(a_uri).path)
+                    m = drive_match.match(pp)
+                    if m is not None:
+                        path = str(Path(m.groups()[0]))
+                    else:
+                        path = str(Path)
+
                 else:
                     path = l["idigbio:OriginalFileName"]
                 # Try recordID, get MediaGUID or raise key error as default
