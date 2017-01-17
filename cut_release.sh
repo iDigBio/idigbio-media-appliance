@@ -37,6 +37,7 @@ echo "Creating new $1 release at version $nv"
 python setup.py sdist bdist_wheel upload &&
 ./versioning.py --no-human pypi &&
 git commit -am "Creating new $1 release at version $nv." &&
+git push &&
 git tag $nv &&
 git push --tags &&
 conda build . --no-test &&

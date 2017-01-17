@@ -7,3 +7,7 @@ def get_uuid_unicode():
         return unicode(u)
     except NameError:
         return str(u)
+
+
+class NotAuthorizedException(Exception):
+    pass

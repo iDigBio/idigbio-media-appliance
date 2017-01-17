@@ -13,7 +13,7 @@ from .file_handling import file_types, calcFileHash, check_update
 from ..models import Media
 from ..api.appuser import get_current_user
 
-from . import get_uuid_unicode
+from . import get_uuid_unicode, NotAuthorizedException
 
 # how to handle paths?
 guid_mode = {
@@ -22,10 +22,6 @@ guid_mode = {
     "uuid": lambda path: get_uuid_unicode(),
     "hash": lambda path: calcFileHash(path),
 }
-
-
-class NotAuthorizedException(Exception):
-    pass
 
 
 def recursive_walk(directory):
@@ -53,7 +49,7 @@ def scan_dir(directory, guid_type="uuid", guid_params=None, recursive=True):
 
     current_user = get_current_user()
     if current_user is None:
-        raise NotAuthorizedException
+        raise NotAuthorizedException()
 
     if os.path.exists(directory):
 
@@ -72,6 +68,7 @@ def scan_dir(directory, guid_type="uuid", guid_params=None, recursive=True):
             yield m
     else:
         raise FileNotFoundError("No Such Directory {}".format(directory))
+
 
 if __name__ == '__main__':
     for m in scan_dir("/home/godfoder/Downloads"):

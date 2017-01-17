@@ -29,6 +29,7 @@ tasks = {}
 
 p = None
 
+
 @service_api.route("/shutdown")
 def shutdown():
     if p is not None:
@@ -274,6 +275,7 @@ def fileprompt():
         "path": easygui.filesavebox(default="media.csv")
     })
 
+
 @service_api.route("/debug_pack")
 def debug_dump():
     current_user = get_current_user()
@@ -284,7 +286,7 @@ def debug_dump():
                 if file == "debug.zip":
                     continue
 
-                zf.write(os.path.join(root,file))
+                zf.write(os.path.join(root, file))
 
         zf.close()
 
