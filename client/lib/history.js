@@ -61,7 +61,7 @@ module.exports = React.createClass({
         $.ajax({
             type: "POST",
             url: "/api/mediacsv",
-            data: { "period": self.props.period },
+            data: JSON.stringify({ "period": self.props.period }),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function(data){

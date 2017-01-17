@@ -50,11 +50,13 @@ def genmediacsv():
 
     task_id = get_uuid_unicode()
 
+    b = request.get_json()
+
     tasks[task_id] = p.apply_async(
         media_csv,
         [],
         {
-            "period": request.args.get("period"),
+            "period": b.get("period"),
             "out_file_name": task_id + ".csv"
         }
     )
