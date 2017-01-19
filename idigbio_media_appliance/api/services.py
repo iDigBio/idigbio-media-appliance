@@ -171,10 +171,18 @@ def readdir():
 
 @service_api.route("/getfile/<string:filename>", methods=["GET"])
 def return_readdir_file(filename):
+    current_user = get_current_user()
+    now = datetime.datetime.now()
+    fname = "{}_{}_{}".format(
+        current_user.user_alias,
+        now.isoformat(),
+        filename
+    )
     return send_from_directory(
         current_app.config["USER_DATA"],
         filename,
-        as_attachment=True
+        as_attachment=True,
+        attachment_filename=fname
     )
 
 
