@@ -7,7 +7,7 @@ build:
   - idigbio_media_appliance=idigbio_media_appliance.__main__:main
 package:
   name: idigbio-media-appliance
-  version: 2.5.0
+  version: 2.5.1
 requirements:
   build:
   - python
@@ -35,9 +35,9 @@ requirements:
   - unicodecsv
   - idigbio
 source:
-  fn: idigbio-media-appliance-2.5.0.tar.gz
-  md5: 240512f9b589f3d775973d5bcb676789
-  url: https://pypi.python.org/packages/4c/68/4dd27674aab4c27066ce6019dd7e4bb1e553ba1842fe3abc5bfefa066ee0/idigbio-media-appliance-2.5.0.tar.gz
+  fn: idigbio-media-appliance-2.5.1.tar.gz
+  md5: 23d2948ae2b15e0804dd499d66d6cab0
+  url: https://pypi.python.org/packages/1b/c5/bf31edea8a90f23c0333922c621b5d357c2f63b9a00f4fc8988fd9574e11/idigbio-media-appliance-2.5.1.tar.gz
 test:
   commands:
   - idigbio_media_appliance --help
