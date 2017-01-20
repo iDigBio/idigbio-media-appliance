@@ -41,7 +41,7 @@ git push &&
 git tag $nv &&
 git push --tags &&
 conda build . --no-test &&
-conda convert --platform all ~/anaconda3/conda-bld/linux-64/idigbio-media-appliance-$nv-py35_0.tar.bz2 -o ~/conda-builds/platform-pack/ &&
+conda convert --platform all ~/miniconda3/conda-bld/linux-64/idigbio-media-appliance-$nv-py35_0.tar.bz2 -o ~/conda-builds/platform-pack/ &&
 
 for p in `ls ~/conda-builds/platform-pack/*/idigbio-media-appliance-$nv*`; do
     anaconda upload --user idigbio $p;
