@@ -25,13 +25,13 @@ guid_mode = {
 def recursive_walk(directory):
     for root, dirs, files in os.walk(directory):
         for f in files:
-            if f.rsplit(".", 1)[-1] in file_types:
+            if f.rsplit(".", 1)[-1].lower() in file_types:
                 yield os.path.join(root, f)
 
 
 def simple_walk(directory):
     for f in os.listdir(directory):
-        if f.rsplit(".", 1)[-1] in file_types:
+        if f.rsplit(".", 1)[-1].lower() in file_types:
             yield os.path.join(directory, f)
 
 
