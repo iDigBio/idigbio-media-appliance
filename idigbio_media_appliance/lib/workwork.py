@@ -128,8 +128,9 @@ def get_api_client(current_user=None):
     if current_user is None:
         current_user = get_current_user()
 
+    env = os.getenv("IDIGBIO_ENV", "prod")
     api = idigbio.json(
-        env="prod",
+        env=env,
         user=current_user.user_uuid,
         password=current_user.auth_key
     )
