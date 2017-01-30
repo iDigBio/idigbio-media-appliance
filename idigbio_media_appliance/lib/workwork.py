@@ -227,7 +227,7 @@ def media_csv(period=None, out_file_name=None):
                 dc_type = ""
 
             props = json.loads(m.props)
-            rights = props.get("dc:rights", config["license"])
+            rights = props.get("dc:rights", config.get("license", "CC0"))
             if "dc:rights" in m.props:
                 del props["dc:rights"]
 
@@ -291,7 +291,7 @@ def do_create_media(directory, guid_type="uuid", guid_params=None,
             db.session.add(m)
         else:
             props = json.loads(m.props)
-            writer.writerow([m.file_reference, Path(m.path).as_uri(), props.get("dc:rights")])
+            writer.writerow([m.file_reference, Path(m.path).as_uri(), props.get("dc:rights", "CC0")])
 
         if i % 1000 == 0:
             logging.debug("scan group {}".format(i))

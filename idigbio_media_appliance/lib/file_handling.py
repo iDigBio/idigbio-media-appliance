@@ -35,7 +35,8 @@ def check_update(m, p, current_user, guid_type=None):
     m.image_hash = h
     m.appuser = current_user
     props = json.loads(m.props)
-    props["dc:rights"] = current_user.config["license"]
+    config = json.loads(current_user.config)
+    props["dc:rights"] = config.get("license", "CC0")
     m.props = json.dumps(props)
     if guid_type == "hash":
         m.file_reference = h

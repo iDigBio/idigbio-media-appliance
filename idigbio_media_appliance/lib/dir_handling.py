@@ -64,7 +64,7 @@ def scan_dir(directory, guid_type="uuid", guid_params=None, recursive=True):
                 m = Media(path=p, file_reference=ref_func(p),
                           appuser=current_user)
                 props = {}
-                props["dc:rights"] = config["license"]
+                props["dc:rights"] = config.get("license", "CC0")
                 m.props = json.dumps(props)
 
             yield m
