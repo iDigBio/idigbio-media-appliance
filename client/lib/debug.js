@@ -6,13 +6,11 @@ DebugLink = React.createClass({
         }
     },
     sendDebug: function(){
-        console.log("ping")
         var self = this;
         $.ajax({
             type: "GET",
             url: "/api/debug_pack",
             success: function(data){
-                console.log(data);
                 self.setState(data);
             }
         });
