@@ -3,7 +3,7 @@ Flask-RESTful==0.3.5
 Flask-SQLAlchemy==2.2
 alembic==0.9.1
 easygui==0.98.1
-appdirs
+appdirs==1.4.2
 gevent
 idigbio
 unicodecsv
