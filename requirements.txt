@@ -1,4 +1,4 @@
-Flask
+Flask==0.12
 Flask-RESTful
 Flask-SQLAlchemy
 alembic
