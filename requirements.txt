@@ -1,6 +1,6 @@
 Flask==0.12
 Flask-RESTful==0.3.5
-Flask-SQLAlchemy
+Flask-SQLAlchemy==2.2
 alembic
 easygui
 appdirs
