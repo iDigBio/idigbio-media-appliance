@@ -14,6 +14,7 @@ FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT)
 file_handler = logging.FileHandler(config.USER_DATA + "/error.log")
 file_handler.setLevel(logging.WARNING)
+file_handler.setFormatter(FORMAT)
 
 app = Flask(__name__)
 app.logger.addHandler(file_handler)
