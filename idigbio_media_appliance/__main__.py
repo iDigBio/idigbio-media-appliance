@@ -16,7 +16,7 @@ def main():
     dbg = "True" == os.getenv("DEBUG", "False")
 
     try:
-        subprocess.run(["conda", "install", "-y", "idigbio-media-appliance"])
+        subprocess.run(["conda", "install", "-y", "-c", "idigbio", "idigbio-media-appliance"])
     except:
         logging.exception("Update Error")
 
