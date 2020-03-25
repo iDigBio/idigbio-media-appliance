@@ -7,7 +7,7 @@
     "react-dom": "^0.14.7",
     "bootstrap": "^3.3.6",
     "react": "^0.14.7",
-    "jquery": "^2.2.1"
+    "jquery": "^3.4.1"
   },
   "author": "Alex Thompson <godfoder@acis.ufl.edu>",
   "repository": "http://github.com/idigbio/idigbio-media-appliance",
