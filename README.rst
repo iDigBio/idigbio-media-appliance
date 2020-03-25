@@ -1,5 +1,8 @@
 idigbio-media-appliance
 ==========================
+
+PLEASE NOTE: As of 2019-12-31, this software has been deprecated. Development has been halted and the media appliance is no longer a supported method for getting images into iDigBio. For additional information, see: https://www.idigbio.org/wiki/index.php/IDigBio_Media_Appliance#Deprecation_Notice
+
 iDigBio Media Appliance v2
 
 The iDigBio Media Appliance is a cross-platform local web app that is used to upload media files from a local computer environment into iDigBio storage where they become available on the public Internet.
